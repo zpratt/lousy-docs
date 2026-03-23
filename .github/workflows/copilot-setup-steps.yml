@@ -20,11 +20,14 @@ jobs:
       contents: read
     steps:
       - name: Checkout code
-        uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98 # v6.0.2
+        uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98
       - name: Setup node
-        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f
         with:
           node-version-file: .nvmrc
           cache: npm
       - name: Install Node.js dependencies
         run: npm ci
+      - name: Install agent-shell
+        run: npm install -g @lousy-agents/agent-shell@v5.6.0
+
