@@ -1,0 +1,10 @@
+---
+// biome-ignore lint/correctness/noUnusedImports: used in Astro HTML template
+import { HomePage } from "../components/home/HomePage";
+// biome-ignore lint/correctness/noUnusedImports: used in Astro HTML template
+import BaseLayout from "../layouts/BaseLayout.astro";
+---
+
+<BaseLayout title="lousy-docs — Analog Terminal">
+    <HomePage client:only="react" />
+</BaseLayout>
