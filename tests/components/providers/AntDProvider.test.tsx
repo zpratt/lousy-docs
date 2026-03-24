@@ -11,7 +11,7 @@ describe("AntDProvider", () => {
                 </AntDProvider>,
             );
 
-            expect(screen.getByTestId("child")).toBeDefined();
+            expect(screen.getByTestId("child")).toBeInTheDocument();
         });
     });
 });

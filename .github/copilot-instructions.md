@@ -2,9 +2,9 @@
 applyTo: "**"
 ---
 
-# Next.js TDD Application
+# Astro TDD Application
 
-A Next.js TypeScript application following Test-Driven Development, Clean Architecture, and strict validation workflows.
+An Astro TypeScript static site following Test-Driven Development, Clean Architecture, and strict validation workflows.
 
 ## Commands
 
@@ -50,7 +50,7 @@ Task is NOT complete until all validation passes.
 
 ## Tech Stack
 
-- **Framework**: Next.js (React) — follow Next.js conventions
+- **Framework**: Astro (with React islands) — follow Astro conventions
 - **Language**: TypeScript (strict mode)
 - **Validation**: Zod for runtime validation of external data
 - **Testing**: Vitest (never Jest), MSW for HTTP mocking, Chance.js for test fixtures
@@ -65,10 +65,9 @@ Task is NOT complete until all validation passes.
 .github/           GitHub Actions workflows
 src/               Application source code
   components/      React components
-  pages/           Next.js pages and routes
-  lib/             Utilities and helpers
+  layouts/         Astro layout components
+  pages/           Astro pages and routes
 tests/             Test files (mirror src/ structure)
-scripts/           Build, deploy, and test scripts
 .nvmrc             Node.js version (latest LTS)
 ```
 

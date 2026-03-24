@@ -15,7 +15,7 @@ npm run lint:yaml       # Validate YAML syntax with yamllint
 
 ## Workflow Structure Requirements
 
-1. Every workflow MUST include test and lint jobs.
+1. Every CI workflow that builds, tests, or lints code MUST include at least one test job and one lint job. Utility workflows (for example, `copilot-setup-steps.yml`) are exempt from this requirement.
 2. Reference Node.js version from `.nvmrc` using `actions/setup-node` with `node-version-file` input.
 3. Use official setup actions: `actions/checkout`, `actions/setup-node`, `actions/cache`.
 

@@ -1,5 +1,5 @@
 ---
-applyTo: "src/**/*.{test,spec}.{ts,tsx}"
+applyTo: "{src,tests}/**/*.{test,spec}.{ts,tsx}"
 ---
 
 # Testing Conventions
@@ -84,9 +84,9 @@ it("should return user when found", async () => {
     findById: vi.fn().mockResolvedValue({ id: "1", name: "John" })
   };
   const service = createUserService(mockRepository);
-  
+
   const result = await service.getUser("1");
-  
+
   expect(result).toEqual({ id: "1", name: "John" });
 });
 ```

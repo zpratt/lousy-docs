@@ -31,9 +31,9 @@
         "@upstash/context7-mcp": "2.1.4",
         "@vitejs/plugin-react": "6.0.1",
         "@vitest/ui": "4.1.0",
-        "happy-dom": "^20.0.11",
+        "happy-dom": "20.8.4",
         "jsdom": "29.0.1",
-        "typescript": "^5",
+        "typescript": "5.9.3",
         "vitest": "4.1.0",
         "whatwg-fetch": "3.6.20"
     }
