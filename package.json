@@ -1,0 +1,45 @@
+{
+    "name": "lousy-docs",
+    "version": "0.1.0",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "dev": "astro dev --host 0.0.0.0",
+        "build": "astro build",
+        "preview": "astro preview",
+        "test": "vitest run",
+        "lint": "biome check .",
+        "lint:fix": "biome check --write .",
+        "lint:workflows": "actionlint",
+        "lint:yaml": "yamllint ."
+    },
+    "dependencies": {
+        "@astrojs/react": "5.0.1",
+        "antd": "6.3.3",
+        "astro": "6.0.8",
+        "pino": "10.3.1",
+        "react": "19.2.4",
+        "react-dom": "19.2.4",
+        "zod": "4.3.6"
+    },
+    "devDependencies": {
+        "@biomejs/biome": "2.4.8",
+        "@types/chance": "1.1.7",
+        "chance": "1.1.13",
+        "msw": "2.12.14",
+        "@lousy-agents/mcp": "5.5.0",
+        "@modelcontextprotocol/server-sequential-thinking": "2025.12.18",
+        "@testing-library/jest-dom": "6.9.1",
+        "@testing-library/react": "16.3.2",
+        "@types/react": "19.2.14",
+        "@types/react-dom": "19.2.3",
+        "@upstash/context7-mcp": "2.1.4",
+        "@vitejs/plugin-react": "6.0.1",
+        "@vitest/ui": "4.1.0",
+        "happy-dom": "20.8.4",
+        "jsdom": "29.0.1",
+        "typescript": "5.9.3",
+        "vitest": "4.1.0",
+        "whatwg-fetch": "3.6.20"
+    }
+}
