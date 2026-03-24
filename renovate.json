@@ -1,0 +1,82 @@
+{
+    "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+    "extends": [
+        "config:recommended",
+        "helpers:pinGitHubActionDigestsToSemver",
+        "security:openssf-scorecard"
+    ],
+    "automerge": true,
+    "platformAutomerge": true,
+    "lockFileMaintenance": {
+        "enabled": true,
+        "automergeType": "branch"
+    },
+    "semanticCommitType": "fix",
+    "semanticCommitScope": "deps",
+    "pinDigests": true,
+    "packageRules": [
+        {
+            "description": "Pin all npm dependencies to exact versions",
+            "matchManagers": ["npm"],
+            "rangeStrategy": "pin"
+        },
+        {
+            "description": "Group all Biome updates (npm packages + schema URLs) into a single PR",
+            "matchPackageNames": ["@biomejs/biome"],
+            "groupName": "biome"
+        }
+    ],
+    "customManagers": [
+        {
+            "description": "Track Node.js version in devcontainer node feature",
+            "customType": "regex",
+            "managerFilePatterns": ["/(^|/)devcontainer\\.json$/"],
+            "matchStrings": [
+                "\"ghcr\\.io/devcontainers/features/node:[^\"]+\":\\s*\\{[^{}]*?\"version\":\\s*\"(?<currentValue>[^\"]+)\""
+            ],
+            "depNameTemplate": "nodejs/node",
+            "datasourceTemplate": "github-tags",
+            "versioningTemplate": "node"
+        },
+        {
+            "description": "Track Claude Code version in devcontainer claude-code feature",
+            "customType": "regex",
+            "managerFilePatterns": ["/(^|/)devcontainer\\.json$/"],
+            "matchStrings": [
+                "\"ghcr\\.io/anthropics/devcontainer-features/claude-code:[^\"]+\":\\s*\\{[^{}]*?\"version\":\\s*\"(?<currentValue>[^\"]+)\""
+            ],
+            "depNameTemplate": "anthropics/claude-code",
+            "datasourceTemplate": "github-releases"
+        },
+        {
+            "description": "Track actionlint version in devcontainer actionlint feature",
+            "customType": "regex",
+            "managerFilePatterns": ["/(^|/)devcontainer\\.json$/"],
+            "matchStrings": [
+                "\"ghcr\\.io/devcontainers-extra/features/actionlint:[^\"]+\":\\s*\\{[^{}]*?\"version\":\\s*\"(?<currentValue>[^\"]+)\""
+            ],
+            "depNameTemplate": "rhysd/actionlint",
+            "datasourceTemplate": "github-releases"
+        },
+        {
+            "description": "Track Biome schema version in biome.json",
+            "customType": "regex",
+            "managerFilePatterns": ["/(^|/)biome\\.json$/"],
+            "matchStrings": [
+                "\"\\$schema\":\\s*\"https://biomejs\\.dev/schemas/(?<currentValue>[^/]+)/schema\\.json\""
+            ],
+            "depNameTemplate": "@biomejs/biome",
+            "datasourceTemplate": "npm"
+        },
+        {
+            "description": "Track @lousy-agents/agent-shell version in workflow run steps",
+            "customType": "regex",
+            "managerFilePatterns": ["/.github/workflows/.+\\.ya?ml$/"],
+            "matchStrings": [
+                "npm install -g @lousy-agents/agent-shell@v(?<currentValue>[^\\s]+)"
+            ],
+            "depNameTemplate": "@lousy-agents/agent-shell",
+            "datasourceTemplate": "npm"
+        }
+    ]
+}
