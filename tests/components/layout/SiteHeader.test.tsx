@@ -4,13 +4,13 @@ import { SiteHeader } from "@/components/layout/SiteHeader";
 
 describe("SiteHeader", () => {
     describe("given no props", () => {
-        it("renders a nav element for navigation links", () => {
+        it("should render a nav element for navigation links", () => {
             render(<SiteHeader />);
 
             expect(screen.getByRole("navigation")).toBeInTheDocument();
         });
 
-        it("renders Home navigation link", () => {
+        it("should render Home navigation link", () => {
             render(<SiteHeader />);
 
             expect(
@@ -18,7 +18,7 @@ describe("SiteHeader", () => {
             ).toBeInTheDocument();
         });
 
-        it("renders Docs navigation link", () => {
+        it("should render Docs navigation link", () => {
             render(<SiteHeader />);
 
             expect(
@@ -26,7 +26,7 @@ describe("SiteHeader", () => {
             ).toBeInTheDocument();
         });
 
-        it("renders the site logo", () => {
+        it("should render the site logo", () => {
             render(<SiteHeader />);
 
             expect(screen.getByText("lousy-docs")).toBeInTheDocument();

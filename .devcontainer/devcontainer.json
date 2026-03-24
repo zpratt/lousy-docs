@@ -27,7 +27,7 @@
             "onAutoForward": "notify"
         }
     },
-    "postCreateCommand": "npm i",
+    "postCreateCommand": "npm i -g @lousy-agents/agent-shell && npm i",
     "waitFor": "postCreateCommand",
     "remoteUser": "vscode",
     "customizations": {

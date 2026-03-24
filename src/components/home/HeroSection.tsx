@@ -192,10 +192,20 @@ export function HeroSection() {
                 </div>
 
                 <Flex gap={12} style={{ marginTop: "2.5rem" }} wrap="wrap">
-                    <Button style={primaryButtonStyle} size="large">
+                    <Button
+                        style={primaryButtonStyle}
+                        size="large"
+                        href="/docs"
+                    >
                         Get Started
                     </Button>
-                    <Button style={secondaryButtonStyle} size="large">
+                    <Button
+                        style={secondaryButtonStyle}
+                        size="large"
+                        href="https://github.com/lousy-agents/lousy-docs"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
                         View on GitHub
                     </Button>
                 </Flex>
