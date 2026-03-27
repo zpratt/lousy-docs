@@ -81,6 +81,7 @@ export function SiteHeader() {
                         cursor: "pointer",
                     }}
                     aria-label="Settings"
+                    onClick={() => {}}
                 >
                     <span className="material-symbols-outlined">settings</span>
                 </button>
@@ -94,6 +95,7 @@ export function SiteHeader() {
                         cursor: "pointer",
                     }}
                     aria-label="Open terminal"
+                    onClick={() => {}}
                 >
                     <span className="material-symbols-outlined">terminal</span>
                 </button>

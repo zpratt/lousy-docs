@@ -47,5 +47,21 @@ describe("SiteHeader", () => {
                 screen.getByRole("link", { name: /docs/i }),
             ).toBeInTheDocument();
         });
+
+        it("should render the settings button", () => {
+            render(<SiteHeader />);
+
+            expect(
+                screen.getByRole("button", { name: /settings/i }),
+            ).toBeInTheDocument();
+        });
+
+        it("should render the open terminal button", () => {
+            render(<SiteHeader />);
+
+            expect(
+                screen.getByRole("button", { name: /open terminal/i }),
+            ).toBeInTheDocument();
+        });
     });
 });

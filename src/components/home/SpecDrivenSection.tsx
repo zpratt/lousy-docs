@@ -7,6 +7,7 @@ interface ProcessStep {
     title: string;
     description: string;
     icon: string;
+    iconColor: string;
     accentColor: string;
     iconBg: string;
 }
@@ -18,6 +19,7 @@ const steps: ProcessStep[] = [
         description:
             "Write rigorous, YAML-based definitions of agent boundaries, data inputs, and success criteria.",
         icon: "edit_note",
+        iconColor: "#def0a8",
         accentColor: "#bdce89",
         iconBg: "#5f6e34",
     },
@@ -27,6 +29,7 @@ const steps: ProcessStep[] = [
         description:
             "Simulate all external API dependencies using our built-in mocking engine to test without costs.",
         icon: "data_object",
+        iconColor: "#eebd8e",
         accentColor: "#eebd8e",
         iconBg: "#333531",
     },
@@ -36,6 +39,7 @@ const steps: ProcessStep[] = [
         description:
             "Push to production with a single command. The Protocol ensures 100% adherence to your specification.",
         icon: "rocket_launch",
+        iconColor: "#def0a8",
         accentColor: "#bdce89",
         iconBg: "#5f6e34",
     },
@@ -192,10 +196,7 @@ export function SpecDrivenSection() {
                                         <span
                                             className="material-symbols-outlined"
                                             style={{
-                                                color:
-                                                    step.iconBg === "#333531"
-                                                        ? step.accentColor
-                                                        : "#def0a8",
+                                                color: step.iconColor,
                                             }}
                                             aria-hidden="true"
                                         >
