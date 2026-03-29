@@ -6,18 +6,8 @@ import { DocsTableOfContents } from "@/components/docs/DocsTableOfContents";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { AntDProvider } from "@/components/providers/AntDProvider";
+import type { DocEntry, TocHeading } from "@/lib/docs-types";
 import { HEADER_HEIGHT_PX } from "@/lib/layout-constants";
-
-interface DocEntry {
-    id: string;
-    title: string;
-}
-
-interface TocHeading {
-    depth: number;
-    slug: string;
-    text: string;
-}
 
 interface DocsLayoutShellProps {
     docs: DocEntry[];

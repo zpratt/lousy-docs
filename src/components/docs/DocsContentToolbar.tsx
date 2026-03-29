@@ -51,9 +51,11 @@ export function DocsContentToolbar({
 }: DocsContentToolbarProps) {
     const [copied, setCopied] = useState(false);
     const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const mountedRef = useRef(true);
 
     useEffect(() => {
         return () => {
+            mountedRef.current = false;
             if (timerRef.current !== null) {
                 clearTimeout(timerRef.current);
             }
@@ -65,7 +67,9 @@ export function DocsContentToolbar({
     const handleCopy = useCallback(async () => {
         try {
             const text = await fetchMarkdown(markdownUrl);
+            if (!mountedRef.current) return;
             await copyToClipboard(text);
+            if (!mountedRef.current) return;
             if (timerRef.current !== null) {
                 clearTimeout(timerRef.current);
             }

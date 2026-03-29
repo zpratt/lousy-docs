@@ -1,10 +1,6 @@
 import { Flex } from "antd";
+import type { DocEntry } from "@/lib/docs-types";
 import { HEADER_HEIGHT_PX } from "@/lib/layout-constants";
-
-interface DocEntry {
-    id: string;
-    title: string;
-}
 
 interface DocsSidebarProps {
     docs: DocEntry[];

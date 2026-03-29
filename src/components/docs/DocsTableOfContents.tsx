@@ -1,11 +1,6 @@
 import { Flex } from "antd";
+import type { TocHeading } from "@/lib/docs-types";
 import { HEADER_HEIGHT_PX } from "@/lib/layout-constants";
-
-interface TocHeading {
-    depth: number;
-    slug: string;
-    text: string;
-}
 
 interface DocsTableOfContentsProps {
     headings: TocHeading[];
