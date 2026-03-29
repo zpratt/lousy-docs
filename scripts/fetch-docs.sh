@@ -14,8 +14,9 @@ trap cleanup EXIT
 echo "Fetching docs from lousy-agents repository..."
 
 if [ -n "$DOCS_REF" ]; then
-    git clone --quiet "$REPO_URL" "$TEMP_DIR/lousy-agents"
-    git -C "$TEMP_DIR/lousy-agents" checkout --quiet "$DOCS_REF"
+    git clone --depth 1 --quiet "$REPO_URL" "$TEMP_DIR/lousy-agents"
+    git -C "$TEMP_DIR/lousy-agents" fetch --depth 1 origin "$DOCS_REF"
+    git -C "$TEMP_DIR/lousy-agents" checkout --quiet FETCH_HEAD
 else
     git clone --depth 1 --quiet "$REPO_URL" "$TEMP_DIR/lousy-agents"
 fi
