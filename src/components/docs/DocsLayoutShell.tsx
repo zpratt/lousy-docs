@@ -1,0 +1,62 @@
+import { Flex } from "antd";
+import type { ReactNode } from "react";
+import { DocsSidebar } from "@/components/docs/DocsSidebar";
+import { DocsTableOfContents } from "@/components/docs/DocsTableOfContents";
+import { SiteFooter } from "@/components/layout/SiteFooter";
+import { SiteHeader } from "@/components/layout/SiteHeader";
+import { AntDProvider } from "@/components/providers/AntDProvider";
+
+interface DocEntry {
+    id: string;
+    title: string;
+}
+
+interface TocHeading {
+    depth: number;
+    slug: string;
+    text: string;
+}
+
+interface DocsLayoutShellProps {
+    docs: DocEntry[];
+    currentSlug: string;
+    headings: TocHeading[];
+    children: ReactNode;
+}
+
+const contentStyle: React.CSSProperties = {
+    flex: 1,
+    minWidth: 0,
+    padding: "2rem 3rem",
+    maxWidth: "820px",
+    overflowWrap: "break-word",
+};
+
+export function DocsLayoutShell({
+    docs,
+    currentSlug,
+    headings,
+    children,
+}: DocsLayoutShellProps) {
+    return (
+        <AntDProvider>
+            <Flex
+                vertical
+                style={{ minHeight: "100vh", backgroundColor: "#121410" }}
+            >
+                <SiteHeader />
+                <Flex
+                    style={{
+                        flex: 1,
+                        paddingTop: "64px",
+                    }}
+                >
+                    <DocsSidebar docs={docs} currentSlug={currentSlug} />
+                    <main style={contentStyle}>{children}</main>
+                    <DocsTableOfContents headings={headings} />
+                </Flex>
+                <SiteFooter />
+            </Flex>
+        </AntDProvider>
+    );
+}
