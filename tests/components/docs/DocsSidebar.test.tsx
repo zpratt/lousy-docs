@@ -45,7 +45,9 @@ describe("DocsSidebar", () => {
 
             render(<DocsSidebar docs={docs} currentSlug={docs[0].id} />);
 
-            expect(screen.getByText("Documentation")).toBeInTheDocument();
+            expect(
+                screen.getByRole("navigation", { name: "Documentation" }),
+            ).toBeInTheDocument();
         });
 
         it("should render the README entry as Overview in the navigation", () => {

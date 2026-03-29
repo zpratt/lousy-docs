@@ -1,5 +1,5 @@
 import { Flex } from "antd";
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 interface DocsContentToolbarProps {
     currentSlug: string;
@@ -50,19 +50,31 @@ export function DocsContentToolbar({
     copyToClipboard = defaultCopyToClipboard,
 }: DocsContentToolbarProps) {
     const [copied, setCopied] = useState(false);
+    const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    useEffect(() => {
+        return () => {
+            if (timerRef.current !== null) {
+                clearTimeout(timerRef.current);
+            }
+        };
+    }, []);
 
     const markdownUrl = `/docs/${currentSlug}.md`;
 
-    async function handleCopy() {
+    const handleCopy = useCallback(async () => {
         try {
             const text = await fetchMarkdown(markdownUrl);
             await copyToClipboard(text);
+            if (timerRef.current !== null) {
+                clearTimeout(timerRef.current);
+            }
             setCopied(true);
-            setTimeout(() => setCopied(false), 2000);
+            timerRef.current = setTimeout(() => setCopied(false), 2000);
         } catch {
             // Silently fail — toolbar is a progressive enhancement
         }
-    }
+    }, [fetchMarkdown, copyToClipboard, markdownUrl]);
 
     return (
         <Flex style={toolbarStyle} gap={8} align="center">

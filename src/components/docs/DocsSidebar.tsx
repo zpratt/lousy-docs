@@ -1,4 +1,5 @@
 import { Flex } from "antd";
+import { HEADER_HEIGHT_PX } from "@/lib/layout-constants";
 
 interface DocEntry {
     id: string;
@@ -15,9 +16,9 @@ const sidebarStyle: React.CSSProperties = {
     minWidth: "240px",
     padding: "1.5rem 1rem",
     borderRight: "1px solid rgba(70, 72, 62, 0.15)",
-    height: "calc(100vh - 64px)",
+    height: `calc(100vh - ${HEADER_HEIGHT_PX}px)`,
     position: "sticky",
-    top: "64px",
+    top: `${HEADER_HEIGHT_PX}px`,
     overflowY: "auto",
 };
 
@@ -51,9 +52,6 @@ const activeLinkStyle: React.CSSProperties = {
 };
 
 function formatNavLabel(id: string): string {
-    if (id === "README") {
-        return "Overview";
-    }
     return id.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
@@ -80,27 +78,29 @@ export function DocsSidebar({ docs, currentSlug }: DocsSidebarProps) {
 
     return (
         <aside style={sidebarStyle}>
-            <div style={headingStyle}>Documentation</div>
-            <Flex vertical gap={2}>
-                {sortedDocs.map((doc) => {
-                    const label =
-                        doc.id === "README"
-                            ? "Overview"
-                            : doc.title || formatNavLabel(doc.id);
-                    const isActive = currentSlug === doc.id;
+            <nav aria-label="Documentation">
+                <div style={headingStyle}>Documentation</div>
+                <Flex vertical gap={2}>
+                    {sortedDocs.map((doc) => {
+                        const label =
+                            doc.id === "README"
+                                ? "Overview"
+                                : doc.title || formatNavLabel(doc.id);
+                        const isActive = currentSlug === doc.id;
 
-                    return (
-                        <a
-                            key={doc.id}
-                            href={`/docs/${doc.id}`}
-                            style={isActive ? activeLinkStyle : linkStyle}
-                            aria-current={isActive ? "page" : undefined}
-                        >
-                            {label}
-                        </a>
-                    );
-                })}
-            </Flex>
+                        return (
+                            <a
+                                key={doc.id}
+                                href={`/docs/${doc.id}`}
+                                style={isActive ? activeLinkStyle : linkStyle}
+                                aria-current={isActive ? "page" : undefined}
+                            >
+                                {label}
+                            </a>
+                        );
+                    })}
+                </Flex>
+            </nav>
         </aside>
     );
 }

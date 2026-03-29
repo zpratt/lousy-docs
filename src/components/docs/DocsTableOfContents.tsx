@@ -1,4 +1,5 @@
 import { Flex } from "antd";
+import { HEADER_HEIGHT_PX } from "@/lib/layout-constants";
 
 interface TocHeading {
     depth: number;
@@ -15,9 +16,9 @@ const tocStyle: React.CSSProperties = {
     minWidth: "200px",
     padding: "1.5rem 1rem",
     borderLeft: "1px solid rgba(70, 72, 62, 0.15)",
-    height: "calc(100vh - 64px)",
+    height: `calc(100vh - ${HEADER_HEIGHT_PX}px)`,
     position: "sticky",
-    top: "64px",
+    top: `${HEADER_HEIGHT_PX}px`,
     overflowY: "auto",
 };
 
@@ -53,7 +54,7 @@ export function DocsTableOfContents({ headings }: DocsTableOfContentsProps) {
 
     return (
         <nav style={tocStyle} aria-label="Table of contents">
-            <div style={headingStyle}>On This Page</div>
+            <h2 style={headingStyle}>On This Page</h2>
             <Flex vertical gap={0}>
                 {filteredHeadings.map((heading) => (
                     <a

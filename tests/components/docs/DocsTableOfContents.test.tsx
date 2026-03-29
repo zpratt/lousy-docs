@@ -57,7 +57,9 @@ describe("DocsTableOfContents", () => {
 
             render(<DocsTableOfContents headings={headings} />);
 
-            expect(screen.getByText("On This Page")).toBeInTheDocument();
+            expect(
+                screen.getByRole("heading", { name: "On This Page" }),
+            ).toBeInTheDocument();
         });
 
         it("should render a table of contents navigation landmark", () => {
