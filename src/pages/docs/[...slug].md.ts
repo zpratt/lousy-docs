@@ -10,7 +10,13 @@ export const getStaticPaths: GetStaticPaths = async () => {
 };
 
 export const GET: APIRoute = async ({ props }) => {
-    return new Response(String(props.body ?? ""), {
+    const body = props.body;
+    if (typeof body !== "string") {
+        throw new Error(
+            `Missing markdown body for doc endpoint. Check that the content collection entry has content.`,
+        );
+    }
+    return new Response(body, {
         headers: { "Content-Type": "text/markdown; charset=utf-8" },
     });
 };
