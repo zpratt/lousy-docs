@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+shopt -s nullglob
 
 REPO_URL="https://github.com/zpratt/lousy-agents.git"
 DOCS_REF="${DOCS_REF:-}"
@@ -28,9 +29,16 @@ else
     git clone --depth 1 --quiet "$REPO_URL" "$TEMP_DIR/lousy-agents"
 fi
 
+trap - ERR
+
 rm -rf "$DOCS_DIR"
 mkdir -p "$DOCS_DIR"
-cp "$TEMP_DIR/lousy-agents/docs/"*.md "$DOCS_DIR/"
+docs_files=("$TEMP_DIR/lousy-agents/docs/"*.md)
+if [ "${#docs_files[@]}" -eq 0 ]; then
+    echo "ERROR: No markdown files found in upstream docs/ directory." >&2
+    exit 1
+fi
+cp "${docs_files[@]}" "$DOCS_DIR/"
 
 inject_frontmatter() {
     local file="$1"
