@@ -72,7 +72,10 @@ export function DocsSidebar({ docs, currentSlug }: DocsSidebarProps) {
         const bIndex = navOrder.indexOf(b.id);
         const aOrder = aIndex === -1 ? navOrder.length : aIndex;
         const bOrder = bIndex === -1 ? navOrder.length : bIndex;
-        return aOrder - bOrder;
+        if (aOrder !== bOrder) {
+            return aOrder - bOrder;
+        }
+        return a.id.localeCompare(b.id);
     });
 
     return (

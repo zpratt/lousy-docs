@@ -42,6 +42,10 @@ inject_frontmatter() {
         description="Documentation for $filename"
     fi
 
+    # Escape backslashes and double quotes for valid YAML
+    title=$(printf '%s' "$title" | sed 's/\\/\\\\/g; s/"/\\"/g')
+    description=$(printf '%s' "$description" | sed 's/\\/\\\\/g; s/"/\\"/g')
+
     local tmpfile
     tmpfile=$(mktemp)
     {
@@ -61,7 +65,8 @@ done
 
 # Remove local image references that won't resolve in the docs site
 for file in "$DOCS_DIR"/*.md; do
-    sed -i 's/!\[.*\](\.\.\/media\/[^)]*)//' "$file"
+    sed -i.bak 's/!\[.*\](\.\.\/media\/[^)]*)//' "$file"
+    rm "${file}.bak"
 done
 
 echo "Docs fetched and processed successfully into $DOCS_DIR"

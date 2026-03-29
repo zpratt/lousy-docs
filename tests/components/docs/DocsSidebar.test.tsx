@@ -57,5 +57,20 @@ describe("DocsSidebar", () => {
                 screen.getByRole("link", { name: "Overview" }),
             ).toBeInTheDocument();
         });
+
+        it("should sort unknown docs alphabetically by id after known docs", () => {
+            const docs = [
+                createDocEntry({ id: "zebra", title: "Zebra Doc" }),
+                createDocEntry({ id: "init", title: "init Command" }),
+                createDocEntry({ id: "alpha", title: "Alpha Doc" }),
+            ];
+
+            render(<DocsSidebar docs={docs} currentSlug="init" />);
+
+            const links = screen.getAllByRole("link");
+            expect(links[0]).toHaveTextContent("init Command");
+            expect(links[1]).toHaveTextContent("Alpha Doc");
+            expect(links[2]).toHaveTextContent("Zebra Doc");
+        });
     });
 });
