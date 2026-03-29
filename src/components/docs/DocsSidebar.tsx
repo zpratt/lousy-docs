@@ -82,17 +82,24 @@ export function DocsSidebar({ docs, currentSlug }: DocsSidebarProps) {
         <aside style={sidebarStyle}>
             <div style={headingStyle}>Documentation</div>
             <Flex vertical gap={2}>
-                {sortedDocs.map((doc) => (
-                    <a
-                        key={doc.id}
-                        href={`/docs/${doc.id}`}
-                        style={
-                            currentSlug === doc.id ? activeLinkStyle : linkStyle
-                        }
-                    >
-                        {doc.title || formatNavLabel(doc.id)}
-                    </a>
-                ))}
+                {sortedDocs.map((doc) => {
+                    const label =
+                        doc.id === "README"
+                            ? "Overview"
+                            : doc.title || formatNavLabel(doc.id);
+                    const isActive = currentSlug === doc.id;
+
+                    return (
+                        <a
+                            key={doc.id}
+                            href={`/docs/${doc.id}`}
+                            style={isActive ? activeLinkStyle : linkStyle}
+                            aria-current={isActive ? "page" : undefined}
+                        >
+                            {label}
+                        </a>
+                    );
+                })}
             </Flex>
         </aside>
     );

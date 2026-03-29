@@ -6,4 +6,7 @@ export default defineConfig({
     output: "static",
     site: "https://lousy-docs.lousy-agents.workers.dev",
     integrations: [react(), sitemap()],
+    redirects: {
+        "/docs": "/docs/README",
+    },
 });

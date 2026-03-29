@@ -65,7 +65,7 @@ done
 
 # Remove local image references that won't resolve in the docs site
 for file in "$DOCS_DIR"/*.md; do
-    sed -i.bak 's/!\[.*\](\.\.\/media\/[^)]*)//' "$file"
+    sed -i.bak 's/!\[[^]]*\](\.\.\/media\/[^)]*)//g' "$file"
     rm "${file}.bak"
 done
 

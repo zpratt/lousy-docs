@@ -10,7 +10,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
 };
 
 export const GET: APIRoute = async ({ props }) => {
-    return new Response(props.body as string, {
+    return new Response(String(props.body ?? ""), {
         headers: { "Content-Type": "text/markdown; charset=utf-8" },
     });
 };

@@ -58,6 +58,34 @@ describe("DocsSidebar", () => {
             ).toBeInTheDocument();
         });
 
+        it("should render the README entry as Overview even when title is present", () => {
+            const title = chance.sentence({ words: 3 });
+            const docs = [createDocEntry({ id: "README", title })];
+
+            render(<DocsSidebar docs={docs} currentSlug="README" />);
+
+            expect(
+                screen.getByRole("link", { name: "Overview" }),
+            ).toBeInTheDocument();
+            expect(screen.queryByRole("link", { name: title })).toBeNull();
+        });
+
+        it("should mark the active link with aria-current page", () => {
+            const docs = [
+                createDocEntry({ id: "init", title: "init Command" }),
+                createDocEntry({ id: "lint", title: "lint Command" }),
+            ];
+
+            render(<DocsSidebar docs={docs} currentSlug="init" />);
+
+            expect(
+                screen.getByRole("link", { name: "init Command" }),
+            ).toHaveAttribute("aria-current", "page");
+            expect(
+                screen.getByRole("link", { name: "lint Command" }),
+            ).not.toHaveAttribute("aria-current");
+        });
+
         it("should sort unknown docs alphabetically by id after known docs", () => {
             const docs = [
                 createDocEntry({ id: "zebra", title: "Zebra Doc" }),
