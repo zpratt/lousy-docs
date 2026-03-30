@@ -14,9 +14,9 @@
         "lint:yaml": "yamllint ."
     },
     "dependencies": {
-        "@astrojs/react": "5.0.1",
+        "@astrojs/react": "5.0.2",
         "antd": "6.3.3",
-        "astro": "6.0.8",
+        "astro": "6.1.1",
         "pino": "10.3.1",
         "react": "19.2.4",
         "react-dom": "19.2.4",
