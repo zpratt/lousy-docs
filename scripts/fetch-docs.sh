@@ -5,7 +5,7 @@ shopt -s nullglob
 REPO_URL="https://github.com/zpratt/lousy-agents.git"
 DOCS_REF="${DOCS_REF:-}"
 DOCS_DIR="src/content/docs"
-TEMP_DIR=$(mktemp -d)
+TEMP_DIR=$(mktemp -d "${TMPDIR:-/tmp}/lousy-docs.XXXXXX")
 
 cleanup() {
     rm -rf "$TEMP_DIR"
@@ -71,7 +71,7 @@ inject_frontmatter() {
     description=$(printf '%s' "$description" | sed 's/\\/\\\\/g; s/"/\\"/g')
 
     local tmpfile
-    tmpfile=$(mktemp)
+    tmpfile=$(mktemp "${TMPDIR:-/tmp}/inject_frontmatter.XXXXXX")
     {
         echo "---"
         echo "title: \"$title\""
