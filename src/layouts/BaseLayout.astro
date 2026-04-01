@@ -9,6 +9,9 @@ interface Props {
 // biome-ignore lint/correctness/noUnusedVariables: used in Astro HTML template
 const { title, description = "Documentation for the Lousy Agents ecosystem." } =
     Astro.props;
+
+// biome-ignore lint/correctness/noUnusedVariables: used in Astro HTML template
+const cfBeaconToken = import.meta.env.PUBLIC_CF_BEACON_TOKEN;
 ---
 
 <!doctype html>
@@ -36,5 +39,12 @@ const { title, description = "Documentation for the Lousy Agents ecosystem." } =
     </head>
     <body>
         <slot />
+        {cfBeaconToken && (
+            <script
+                defer
+                src="https://static.cloudflareinsights.com/beacon.min.js"
+                data-cf-beacon={JSON.stringify({ token: cfBeaconToken })}
+            ></script>
+        )}
     </body>
 </html>
