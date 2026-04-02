@@ -17,7 +17,7 @@ const drawerBodyStyle: React.CSSProperties = {
 
 const drawerHeaderStyle: React.CSSProperties = {
     backgroundColor: "#121410",
-    borderBottom: "1px solid rgba(70, 72, 62, 0.3)",
+    borderBottom: "1px solid rgba(70, 72, 62, 0.15)",
 };
 
 export function MobileDocsDrawer({
