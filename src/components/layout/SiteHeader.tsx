@@ -92,14 +92,24 @@ function DesktopHeader() {
                     style={iconButtonStyle}
                     aria-label="Settings"
                 >
-                    <span className="material-symbols-outlined">settings</span>
+                    <span
+                        className="material-symbols-outlined"
+                        aria-hidden="true"
+                    >
+                        settings
+                    </span>
                 </button>
                 <button
                     type="button"
                     style={iconButtonStyle}
                     aria-label="Open terminal"
                 >
-                    <span className="material-symbols-outlined">terminal</span>
+                    <span
+                        className="material-symbols-outlined"
+                        aria-hidden="true"
+                    >
+                        terminal
+                    </span>
                 </button>
             </Flex>
         </header>
@@ -120,7 +130,12 @@ export function MobileHeader({ onMenuToggle }: MobileHeaderProps) {
                     aria-label="Open menu"
                     onClick={onMenuToggle}
                 >
-                    <span className="material-symbols-outlined">menu</span>
+                    <span
+                        className="material-symbols-outlined"
+                        aria-hidden="true"
+                    >
+                        menu
+                    </span>
                 </button>
                 <span style={mobileLogoStyle}>LOUSY_AGENTS</span>
             </Flex>
@@ -130,7 +145,12 @@ export function MobileHeader({ onMenuToggle }: MobileHeaderProps) {
                     style={iconButtonStyle}
                     aria-label="Settings"
                 >
-                    <span className="material-symbols-outlined">settings</span>
+                    <span
+                        className="material-symbols-outlined"
+                        aria-hidden="true"
+                    >
+                        settings
+                    </span>
                 </button>
             </Flex>
         </header>

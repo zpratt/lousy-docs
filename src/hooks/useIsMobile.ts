@@ -1,15 +1,15 @@
 import { useEffect, useState } from "react";
 
 const MOBILE_BREAKPOINT = 768;
+const MOBILE_QUERY = `(max-width: ${MOBILE_BREAKPOINT}px)`;
 
 export function useIsMobile(): boolean {
-    const query = `(max-width: ${MOBILE_BREAKPOINT}px)`;
     const [isMobile, setIsMobile] = useState(
-        () => window.matchMedia(query).matches,
+        () => window.matchMedia(MOBILE_QUERY).matches,
     );
 
     useEffect(() => {
-        const mql = window.matchMedia(query);
+        const mql = window.matchMedia(MOBILE_QUERY);
         const handler = (event: { matches: boolean }) => {
             setIsMobile(event.matches);
         };
@@ -18,7 +18,7 @@ export function useIsMobile(): boolean {
         return () => {
             mql.removeEventListener("change", handler);
         };
-    }, [query]);
+    }, []);
 
     return isMobile;
 }
