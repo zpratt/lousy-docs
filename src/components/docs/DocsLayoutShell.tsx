@@ -65,6 +65,7 @@ export function DocsLayoutShell({
                 style={{ minHeight: "100vh", backgroundColor: "#121410" }}
             >
                 <SiteHeader
+                    isMobile={isMobile}
                     onMobileMenuToggle={handleMenuToggle}
                     isMobileMenuOpen={drawerOpen}
                 />

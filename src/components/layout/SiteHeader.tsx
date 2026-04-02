@@ -1,5 +1,4 @@
 import { Flex } from "antd";
-import { useIsMobile } from "@/hooks/useIsMobile";
 import { HEADER_HEIGHT_PX } from "@/lib/layout-constants";
 
 const headerStyle: React.CSSProperties = {
@@ -162,16 +161,16 @@ export function MobileHeader({ onMenuToggle, isMenuOpen }: MobileHeaderProps) {
 }
 
 interface SiteHeaderProps {
+    isMobile: boolean;
     onMobileMenuToggle?: () => void;
     isMobileMenuOpen?: boolean;
 }
 
 export function SiteHeader({
+    isMobile,
     onMobileMenuToggle,
     isMobileMenuOpen,
 }: SiteHeaderProps) {
-    const isMobile = useIsMobile();
-
     if (isMobile) {
         return (
             <MobileHeader

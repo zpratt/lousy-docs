@@ -1,51 +1,23 @@
 import { render, screen } from "@testing-library/react";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 
-function mockMatchMedia(matches: boolean) {
-    const mql = {
-        matches,
-        media: "",
-        addEventListener: vi.fn(),
-        removeEventListener: vi.fn(),
-    };
-    window.matchMedia = vi
-        .fn()
-        .mockReturnValue(mql) as unknown as typeof window.matchMedia;
-    return mql;
-}
-
 describe("SiteHeader", () => {
-    let originalMatchMedia: typeof window.matchMedia;
-
-    beforeEach(() => {
-        originalMatchMedia = window.matchMedia;
-    });
-
-    afterEach(() => {
-        window.matchMedia = originalMatchMedia;
-        vi.restoreAllMocks();
-    });
-
     describe("given a desktop viewport", () => {
-        beforeEach(() => {
-            mockMatchMedia(false);
-        });
-
         it("should render a nav element for navigation links", () => {
-            render(<SiteHeader />);
+            render(<SiteHeader isMobile={false} />);
 
             expect(screen.getByRole("navigation")).toBeInTheDocument();
         });
 
         it("should render the site branding", () => {
-            render(<SiteHeader />);
+            render(<SiteHeader isMobile={false} />);
 
             expect(screen.getByText("LOUSY_AGENTS")).toBeInTheDocument();
         });
 
         it("should render the Protocol navigation link", () => {
-            render(<SiteHeader />);
+            render(<SiteHeader isMobile={false} />);
 
             expect(
                 screen.getByRole("link", { name: /protocol/i }),
@@ -53,7 +25,7 @@ describe("SiteHeader", () => {
         });
 
         it("should render the Terminal navigation link", () => {
-            render(<SiteHeader />);
+            render(<SiteHeader isMobile={false} />);
 
             expect(
                 screen.getByRole("link", { name: /terminal/i }),
@@ -61,7 +33,7 @@ describe("SiteHeader", () => {
         });
 
         it("should render the Patches navigation link", () => {
-            render(<SiteHeader />);
+            render(<SiteHeader isMobile={false} />);
 
             expect(
                 screen.getByRole("link", { name: /patches/i }),
@@ -69,7 +41,7 @@ describe("SiteHeader", () => {
         });
 
         it("should render the Docs navigation link", () => {
-            render(<SiteHeader />);
+            render(<SiteHeader isMobile={false} />);
 
             expect(
                 screen.getByRole("link", { name: /docs/i }),
@@ -77,7 +49,7 @@ describe("SiteHeader", () => {
         });
 
         it("should not render a mobile menu button", () => {
-            render(<SiteHeader />);
+            render(<SiteHeader isMobile={false} />);
 
             expect(
                 screen.queryByRole("button", { name: /toggle navigation/i }),
@@ -86,18 +58,14 @@ describe("SiteHeader", () => {
     });
 
     describe("given a mobile viewport", () => {
-        beforeEach(() => {
-            mockMatchMedia(true);
-        });
-
         it("should render the site branding", () => {
-            render(<SiteHeader />);
+            render(<SiteHeader isMobile={true} />);
 
             expect(screen.getByText("LOUSY_AGENTS")).toBeInTheDocument();
         });
 
         it("should not render the desktop navigation links", () => {
-            render(<SiteHeader />);
+            render(<SiteHeader isMobile={true} />);
 
             expect(
                 screen.queryByRole("link", { name: /protocol/i }),
@@ -108,7 +76,7 @@ describe("SiteHeader", () => {
         });
 
         it("should not render a mobile menu button when no toggle handler is provided", () => {
-            render(<SiteHeader />);
+            render(<SiteHeader isMobile={true} />);
 
             expect(
                 screen.queryByRole("button", { name: /toggle navigation/i }),
@@ -117,7 +85,12 @@ describe("SiteHeader", () => {
 
         it("should render a mobile menu button when a toggle handler is provided", () => {
             const handleToggle = vi.fn();
-            render(<SiteHeader onMobileMenuToggle={handleToggle} />);
+            render(
+                <SiteHeader
+                    isMobile={true}
+                    onMobileMenuToggle={handleToggle}
+                />,
+            );
 
             expect(
                 screen.getByRole("button", { name: /toggle navigation/i }),
@@ -128,6 +101,7 @@ describe("SiteHeader", () => {
             const handleToggle = vi.fn();
             render(
                 <SiteHeader
+                    isMobile={true}
                     onMobileMenuToggle={handleToggle}
                     isMobileMenuOpen={false}
                 />,
@@ -142,6 +116,7 @@ describe("SiteHeader", () => {
             const handleToggle = vi.fn();
             render(
                 <SiteHeader
+                    isMobile={true}
                     onMobileMenuToggle={handleToggle}
                     isMobileMenuOpen={true}
                 />,
