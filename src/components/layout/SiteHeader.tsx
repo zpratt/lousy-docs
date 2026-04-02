@@ -124,19 +124,21 @@ export function MobileHeader({ onMenuToggle }: MobileHeaderProps) {
     return (
         <header style={headerStyle}>
             <Flex align="center" gap={8}>
-                <button
-                    type="button"
-                    style={iconButtonStyle}
-                    aria-label="Open menu"
-                    onClick={onMenuToggle}
-                >
-                    <span
-                        className="material-symbols-outlined"
-                        aria-hidden="true"
+                {onMenuToggle && (
+                    <button
+                        type="button"
+                        style={iconButtonStyle}
+                        aria-label="Open menu"
+                        onClick={onMenuToggle}
                     >
-                        menu
-                    </span>
-                </button>
+                        <span
+                            className="material-symbols-outlined"
+                            aria-hidden="true"
+                        >
+                            menu
+                        </span>
+                    </button>
+                )}
                 <span style={mobileLogoStyle}>LOUSY_AGENTS</span>
             </Flex>
             <Flex align="center" gap={8}>

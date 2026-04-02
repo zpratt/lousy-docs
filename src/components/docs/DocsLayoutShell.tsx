@@ -1,5 +1,5 @@
 import { Flex } from "antd";
-import { type ReactNode, useCallback, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useState } from "react";
 import { DocsContentToolbar } from "@/components/docs/DocsContentToolbar";
 import { DocsSidebar } from "@/components/docs/DocsSidebar";
 import { DocsTableOfContents } from "@/components/docs/DocsTableOfContents";
@@ -41,6 +41,12 @@ export function DocsLayoutShell({
 }: DocsLayoutShellProps) {
     const isMobile = useIsMobile();
     const [drawerOpen, setDrawerOpen] = useState(false);
+
+    useEffect(() => {
+        if (!isMobile) {
+            setDrawerOpen(false);
+        }
+    }, [isMobile]);
 
     const handleMenuToggle = useCallback(() => {
         setDrawerOpen((prev) => !prev);

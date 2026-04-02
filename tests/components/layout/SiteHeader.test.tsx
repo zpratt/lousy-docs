@@ -107,8 +107,17 @@ describe("SiteHeader", () => {
             ).not.toBeInTheDocument();
         });
 
-        it("should render a mobile menu button", () => {
+        it("should not render a mobile menu button when no toggle handler is provided", () => {
             render(<SiteHeader />);
+
+            expect(
+                screen.queryByRole("button", { name: /open menu/i }),
+            ).not.toBeInTheDocument();
+        });
+
+        it("should render a mobile menu button when a toggle handler is provided", () => {
+            const handleToggle = vi.fn();
+            render(<SiteHeader onMobileMenuToggle={handleToggle} />);
 
             expect(
                 screen.getByRole("button", { name: /open menu/i }),

@@ -15,6 +15,11 @@ const drawerBodyStyle: React.CSSProperties = {
     overscrollBehavior: "contain",
 };
 
+const drawerHeaderStyle: React.CSSProperties = {
+    backgroundColor: "#121410",
+    borderBottom: "1px solid rgba(70, 72, 62, 0.3)",
+};
+
 export function MobileDocsDrawer({
     docs,
     currentSlug,
@@ -30,7 +35,7 @@ export function MobileDocsDrawer({
             styles={{
                 body: drawerBodyStyle,
                 wrapper: { maxWidth: "280px" },
-                header: { display: "none" },
+                header: drawerHeaderStyle,
             }}
             title="Documentation navigation"
         >

@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import Chance from "chance";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -243,6 +243,35 @@ describe("DocsLayoutShell", () => {
             expect(
                 screen.getByRole("navigation", { name: "Documentation" }),
             ).toBeInTheDocument();
+        });
+
+        it("should close the drawer when transitioning from mobile to desktop", async () => {
+            const { listeners } = mockMatchMedia(true);
+            const user = userEvent.setup();
+            const doc = createDocEntry({ id: "init", title: "init Command" });
+
+            render(
+                <DocsLayoutShell docs={[doc]} currentSlug="init" headings={[]}>
+                    <p>Content</p>
+                </DocsLayoutShell>,
+            );
+
+            await user.click(
+                screen.getByRole("button", { name: /open menu/i }),
+            );
+            expect(
+                screen.getByText("Documentation navigation"),
+            ).toBeInTheDocument();
+
+            act(() => {
+                for (const listener of listeners) {
+                    listener({ matches: false });
+                }
+            });
+
+            expect(
+                screen.queryByText("Documentation navigation"),
+            ).not.toBeInTheDocument();
         });
     });
 });
