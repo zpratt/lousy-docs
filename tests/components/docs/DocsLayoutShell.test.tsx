@@ -222,7 +222,7 @@ describe("DocsLayoutShell", () => {
             );
 
             expect(
-                screen.getByRole("button", { name: /open menu/i }),
+                screen.getByRole("button", { name: /toggle navigation/i }),
             ).toBeInTheDocument();
         });
 
@@ -237,7 +237,7 @@ describe("DocsLayoutShell", () => {
             );
 
             await user.click(
-                screen.getByRole("button", { name: /open menu/i }),
+                screen.getByRole("button", { name: /toggle navigation/i }),
             );
 
             expect(
@@ -257,7 +257,7 @@ describe("DocsLayoutShell", () => {
             );
 
             await user.click(
-                screen.getByRole("button", { name: /open menu/i }),
+                screen.getByRole("button", { name: /toggle navigation/i }),
             );
             expect(
                 screen.getByText("Documentation navigation"),

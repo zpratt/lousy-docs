@@ -80,7 +80,7 @@ describe("SiteHeader", () => {
             render(<SiteHeader />);
 
             expect(
-                screen.queryByRole("button", { name: /open menu/i }),
+                screen.queryByRole("button", { name: /toggle navigation/i }),
             ).not.toBeInTheDocument();
         });
     });
@@ -111,7 +111,7 @@ describe("SiteHeader", () => {
             render(<SiteHeader />);
 
             expect(
-                screen.queryByRole("button", { name: /open menu/i }),
+                screen.queryByRole("button", { name: /toggle navigation/i }),
             ).not.toBeInTheDocument();
         });
 
@@ -120,8 +120,36 @@ describe("SiteHeader", () => {
             render(<SiteHeader onMobileMenuToggle={handleToggle} />);
 
             expect(
-                screen.getByRole("button", { name: /open menu/i }),
+                screen.getByRole("button", { name: /toggle navigation/i }),
             ).toBeInTheDocument();
+        });
+
+        it("should set aria-expanded to false when the menu is closed", () => {
+            const handleToggle = vi.fn();
+            render(
+                <SiteHeader
+                    onMobileMenuToggle={handleToggle}
+                    isMobileMenuOpen={false}
+                />,
+            );
+
+            expect(
+                screen.getByRole("button", { name: /toggle navigation/i }),
+            ).toHaveAttribute("aria-expanded", "false");
+        });
+
+        it("should set aria-expanded to true when the menu is open", () => {
+            const handleToggle = vi.fn();
+            render(
+                <SiteHeader
+                    onMobileMenuToggle={handleToggle}
+                    isMobileMenuOpen={true}
+                />,
+            );
+
+            expect(
+                screen.getByRole("button", { name: /toggle navigation/i }),
+            ).toHaveAttribute("aria-expanded", "true");
         });
     });
 });

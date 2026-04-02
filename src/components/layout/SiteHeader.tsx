@@ -118,9 +118,10 @@ function DesktopHeader() {
 
 interface MobileHeaderProps {
     onMenuToggle?: () => void;
+    isMenuOpen?: boolean;
 }
 
-export function MobileHeader({ onMenuToggle }: MobileHeaderProps) {
+export function MobileHeader({ onMenuToggle, isMenuOpen }: MobileHeaderProps) {
     return (
         <header style={headerStyle}>
             <Flex align="center" gap={8}>
@@ -128,7 +129,8 @@ export function MobileHeader({ onMenuToggle }: MobileHeaderProps) {
                     <button
                         type="button"
                         style={iconButtonStyle}
-                        aria-label="Open menu"
+                        aria-label="Toggle navigation"
+                        aria-expanded={isMenuOpen ?? false}
                         onClick={onMenuToggle}
                     >
                         <span
@@ -161,13 +163,22 @@ export function MobileHeader({ onMenuToggle }: MobileHeaderProps) {
 
 interface SiteHeaderProps {
     onMobileMenuToggle?: () => void;
+    isMobileMenuOpen?: boolean;
 }
 
-export function SiteHeader({ onMobileMenuToggle }: SiteHeaderProps) {
+export function SiteHeader({
+    onMobileMenuToggle,
+    isMobileMenuOpen,
+}: SiteHeaderProps) {
     const isMobile = useIsMobile();
 
     if (isMobile) {
-        return <MobileHeader onMenuToggle={onMobileMenuToggle} />;
+        return (
+            <MobileHeader
+                onMenuToggle={onMobileMenuToggle}
+                isMenuOpen={isMobileMenuOpen}
+            />
+        );
     }
 
     return <DesktopHeader />;
