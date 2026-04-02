@@ -26,6 +26,12 @@ const logoStyle: React.CSSProperties = {
     userSelect: "none",
 };
 
+const mobileLogoStyle: React.CSSProperties = {
+    ...logoStyle,
+    fontSize: "1.125rem",
+    letterSpacing: "0.05em",
+};
+
 const activeLinkStyle: React.CSSProperties = {
     fontFamily: "'Space Grotesk', sans-serif",
     fontWeight: 700,
@@ -49,7 +55,15 @@ const linkStyle: React.CSSProperties = {
     transition: "color 0.15s",
 };
 
-export function SiteHeader() {
+const iconButtonStyle: React.CSSProperties = {
+    background: "none",
+    border: "none",
+    padding: "8px",
+    color: "#bdce89",
+    cursor: "pointer",
+};
+
+function DesktopHeader() {
     return (
         <header style={headerStyle}>
             <Flex align="center" gap={16}>
@@ -74,31 +88,97 @@ export function SiteHeader() {
             <Flex align="center" gap={16}>
                 <button
                     type="button"
-                    style={{
-                        background: "none",
-                        border: "none",
-                        padding: "8px",
-                        color: "#bdce89",
-                        cursor: "pointer",
-                    }}
+                    style={iconButtonStyle}
                     aria-label="Settings"
                 >
-                    <span className="material-symbols-outlined">settings</span>
+                    <span
+                        className="material-symbols-outlined"
+                        aria-hidden="true"
+                    >
+                        settings
+                    </span>
                 </button>
                 <button
                     type="button"
-                    style={{
-                        background: "none",
-                        border: "none",
-                        padding: "8px",
-                        color: "#bdce89",
-                        cursor: "pointer",
-                    }}
+                    style={iconButtonStyle}
                     aria-label="Open terminal"
                 >
-                    <span className="material-symbols-outlined">terminal</span>
+                    <span
+                        className="material-symbols-outlined"
+                        aria-hidden="true"
+                    >
+                        terminal
+                    </span>
                 </button>
             </Flex>
         </header>
     );
+}
+
+interface MobileHeaderProps {
+    onMenuToggle?: () => void;
+    isMenuOpen?: boolean;
+}
+
+export function MobileHeader({ onMenuToggle, isMenuOpen }: MobileHeaderProps) {
+    return (
+        <header style={headerStyle}>
+            <Flex align="center" gap={8}>
+                {onMenuToggle && (
+                    <button
+                        type="button"
+                        style={iconButtonStyle}
+                        aria-label="Toggle navigation"
+                        aria-expanded={isMenuOpen ?? false}
+                        onClick={onMenuToggle}
+                    >
+                        <span
+                            className="material-symbols-outlined"
+                            aria-hidden="true"
+                        >
+                            menu
+                        </span>
+                    </button>
+                )}
+                <span style={mobileLogoStyle}>LOUSY_AGENTS</span>
+            </Flex>
+            <Flex align="center" gap={8}>
+                <button
+                    type="button"
+                    style={iconButtonStyle}
+                    aria-label="Settings"
+                >
+                    <span
+                        className="material-symbols-outlined"
+                        aria-hidden="true"
+                    >
+                        settings
+                    </span>
+                </button>
+            </Flex>
+        </header>
+    );
+}
+
+interface SiteHeaderProps {
+    isMobile: boolean;
+    onMobileMenuToggle?: () => void;
+    isMobileMenuOpen?: boolean;
+}
+
+export function SiteHeader({
+    isMobile,
+    onMobileMenuToggle,
+    isMobileMenuOpen,
+}: SiteHeaderProps) {
+    if (isMobile) {
+        return (
+            <MobileHeader
+                onMenuToggle={onMobileMenuToggle}
+                isMenuOpen={isMobileMenuOpen}
+            />
+        );
+    }
+
+    return <DesktopHeader />;
 }
