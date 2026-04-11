@@ -13,17 +13,20 @@ lousy-docs is a static documentation site for the lousy-agents ecosystem, built 
 nvm use
 
 # Development
-npm run dev              # Astro dev server (http://0.0.0.0:3000)
+npm run dev              # Astro dev server (http://0.0.0.0:4321)
 npm run build            # Production static build -> dist/
 npm run preview          # Preview built site locally
 
 # Testing
-npm test                 # Vitest run
+npm test                 # Vitest unit tests
 npm test path/to/file.test.ts  # Single test file
+npm run test:e2e         # Playwright e2e tests
+npm run test:e2e:dist    # e2e tests against production build
+npm run test:e2e:ui      # Playwright UI mode (interactive dev)
 
 # Linting
 npx biome check          # Lint + format check
-npx biome check --write  # Auto-fix lint/format
+npx biome check --write  # Auto-fix lint/format (alias: npm run lint:fix)
 npx biome check path/to/file.ts  # Single file
 npm run lint:workflows   # Validate GitHub Actions (actionlint)
 npm run lint:yaml        # Validate YAML (yamllint)
@@ -41,7 +44,9 @@ All code changes must follow this sequence:
 3. **Implement minimal code** -> **Verify pass** with `npm test`
 4. **Refactor** -> **Validate**: `npx biome check && npm test && npm run build`
 
-Task is NOT complete until full validation passes.
+**For UI-layer changes** (components, layouts, styles, pages), the Visual Debugging Protocol adds mandatory steps between 3 and 4. See `.github/instructions/visual-verification.instructions.md` for the full protocol. In short: capture baseline screenshot → implement → screenshot again → analyze visual delta → verify interactive states → check responsive breakpoints → loop until correct. The agent must self-verify via Playwright MCP before returning control to the human.
+
+Task is NOT complete until full validation passes (code AND visual).
 
 ## Tech Stack
 
@@ -81,6 +86,8 @@ Dependencies point inward only: Entities -> Use Cases -> Adapters -> Infrastruct
 - Mock HTTP with MSW only (never mock fetch directly)
 - Never export functions solely for testing -- use dependency injection via parameters
 - Reset MSW handlers between tests for isolation
+- Event listeners added in tests MUST be removed in `try/finally` or `afterEach` -- never rely on cleanup after assertions
+- Interactive UI (dialogs, overlays, drawers, keyboard shortcuts) MUST have e2e tests covering open, close (all methods), focus management, and keyboard navigation
 
 ## UI Design and Mockups
 
@@ -92,6 +99,30 @@ Use the **Stitch MCP server** for UI mockups and design work. Stitch tools are a
 - Managing projects and screens (`create_project`, `list_projects`, `list_screens`)
 
 When creating UI mockups, reference the "Analog Terminal" design system documented in `DESIGN.md` for colors, typography, elevation, and component guidelines.
+
+## UI Implementation Checklist
+
+Before writing CSS or implementing any interactive UI component, cross-reference `DESIGN.md`. This checklist applies when creating new components with custom styles or interactive behavior — it does not apply to pure business logic, data-fetching, or test changes.
+
+1. **Surface tier**: Identify the component type (base, sectioning, card, floating) and use the correct surface color from §2
+2. **Floating panels**: Must use `surface-container-highest` + `backdrop-filter: blur()` per the Glass & Gradient Rule (§2)
+3. **Borders**: Use ghost borders at 15% opacity per §4 -- never solid 1px borders
+4. **Shadows**: Ambient shadows use `on-surface` at 6% opacity with 40px blur per §4
+5. **Inputs**: Must use monospace font per §5 "Terminal Input"
+6. **Contrast**: All text and placeholder colors must meet WCAG 2.1 AA 4.5:1 minimum
+7. **Visual verification**: ALL items above must be verified via Playwright MCP screenshot (not just code review). See `.github/instructions/visual-verification.instructions.md` for the full protocol.
+
+### Accessibility Requirements for Interactive UI
+
+Any component that overlays or traps user attention (dialogs, modals, drawers, search overlays) MUST implement:
+
+- `role="dialog"` with `aria-modal="true"` and an accessible name (`aria-label` or `aria-labelledby` referencing a visible heading)
+- Visible, focusable close button with accessible name (visible text, `aria-label`, or `aria-labelledby`; use `aria-label` for icon-only buttons)
+- Tab focus trap within the dialog
+- Save active element on open, restore focus on close
+- `inert` attribute on background content when open
+- `:focus-visible` outlines meeting `DESIGN.md` §2 WCAG Compliance requirements (3:1 against adjacent colors)
+- Keyboard dismiss (Escape key at minimum)
 
 ## Dependencies
 
@@ -116,4 +147,4 @@ See `.github/instructions/spec.instructions.md` for full EARS syntax and spec st
 
 **Ask first:** Adding new dependencies, changing project structure, modifying GitHub Actions workflows.
 
-**Never:** Skip TDD workflow, use Jest (use Vitest), mock fetch directly (use MSW), use type assertions on external data, add dependencies without exact version numbers, use `'use client'` directive.
+**Never:** Skip TDD workflow, use Jest (use Vitest), mock fetch directly (use MSW), use type assertions on external data, add dependencies without exact version numbers, use `'use client'` directive, use empty `catch` blocks that swallow errors silently (always log or rethrow), declare a UI task complete without visual verification via Playwright MCP screenshots.

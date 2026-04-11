@@ -25,10 +25,19 @@ Treat the UI as a series of physical plates.
 1.  **Base:** `surface` (`#121410`)
 2.  **Sectioning:** `surface-container-low` (`#1a1c18`)
 3.  **Components/Cards:** `surface-container` (`#1e201c`)
-4.  **Floating/Active:** `surface-container-highest` (`#333531`)
+4.  **Raised:** `surface-container-high` (`#252720`)
+5.  **Floating/Active:** `surface-container-highest` (`#333531`)
+
+> **Note:** `surface-container-lowest` appears in §4 (recessed layering) and §5 (input backgrounds) as a conceptual tier below `surface`. It does not have a dedicated CSS custom property — use `surface` (`#121410`) for these recessed contexts.
 
 ### The Glass & Gradient Rule
 To achieve "lo-fi" depth, use semi-transparent surface colors with a `backdrop-blur` of 8px-12px for floating panels. For primary buttons, use a subtle linear gradient from `primary` (`#bdce89`) to `primary-container` (`#5f6e34`) to mimic the soft glow of a backlit physical button.
+
+### WCAG Compliance
+All surface/text combinations must meet WCAG AA accessibility requirements. Contrast minimums come from WCAG 2.1; focus indicator guidance draws on both 2.1 and 2.2:
+*   **Body text**: 4.5:1 ratio against its background
+*   **Placeholder text**: 4.5:1 ratio — do not rely on low-opacity values without verifying contrast against the specific background surface
+*   **Focus indicators**: `:focus-visible` outlines must achieve 3:1 contrast against adjacent colors per WCAG 2.1 SC 1.4.11 (Non-text Contrast); use `primary` (`#bdce89`) at 2px minimum, not `outline-variant` which only achieves ~1.2:1 on dark surfaces
 
 ---
 
@@ -46,9 +55,9 @@ Our typography is a dialogue between human-centric editorial and cold machine lo
 
 We reject traditional drop shadows in favor of **Tonal Layering**.
 
-*   **The Layering Principle:** Place a `surface-container-lowest` element on a `surface-container-low` background to create a "recessed" look. Place a `surface-container-high` element to create a "raised" look.
+*   **The Layering Principle:** Place a `surface` (recessed) element on a `surface-container-low` background to create a "recessed" look. Place a `surface-container-high` element to create a "raised" look.
 *   **Ambient Shadows:** If an element must float (e.g., a modal), use a shadow tinted with `on-surface` at 6% opacity with a 40px blur. It should feel like a soft glow, not a shadow.
-*   **The "Ghost Border":** If accessibility requires a stroke, use `outline-variant` (`#46483e`) at 15% opacity. It should be barely felt, appearing only as a change in texture.
+*   **The "Ghost Border":** For decorative or structural separation (e.g., card edges, panel boundaries), use `outline-variant` (`#46483e`) at 15% opacity. It should be barely felt, appearing only as a change in texture. **This does not apply to interactive focus indicators** — see the WCAG Compliance section in §2 for `:focus-visible` requirements.
 *   **Stitch Detail:** Inspired by the "Lousy Agent" character, use 2px dashed "Ghost Borders" in secondary colors to denote "beta" or "experimental" containers, mimicking the patches on the character's coat.
 
 ---
@@ -61,7 +70,8 @@ We reject traditional drop shadows in favor of **Tonal Layering**.
 *   **Tertiary:** `surface-container-highest` background, monospace labels.
 
 ### Input Fields & Terminal Blocks
-*   **The Terminal Input:** Dark `surface-container-lowest` background with a `primary` cursor blink. Text must be monospace.
+*   **The Terminal Input:** Dark `surface` (recessed) background with a `primary` cursor blink. Text must be monospace (`"Courier New", Courier, monospace`). This applies to all search inputs, form fields, and any input that accepts user text.
+*   **Placeholder text:** Must use a color that achieves WCAG 2.1 AA 4.5:1 contrast against the input background. For inputs on `surface` / `surface-container-lowest` (`#121410`), `rgba(230, 234, 216, 0.58)` is the tested minimum after compositing. If the input uses a different surface token, re-verify the rendered contrast.
 *   **Validation:** Use the `error` (`#ffb4ab`) color only for critical failures. For warnings, use the `secondary` amber.
 
 ### Cards & Lists
