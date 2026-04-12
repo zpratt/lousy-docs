@@ -117,4 +117,23 @@ for file in "$DOCS_DIR"/*.md; do
     rm "${file}.bak"
 done
 
+# Copy local docs (authored in this repo) into the content directory.
+# These already have frontmatter and use absolute /docs/ links, so the
+# upstream inject_frontmatter and sed transforms do not run on them.
+LOCAL_DOCS_DIR="src/content/local-docs"
+if [ -d "$LOCAL_DOCS_DIR" ]; then
+    local_md_files=("$LOCAL_DOCS_DIR/"*.md)
+    if [ "${#local_md_files[@]}" -gt 0 ]; then
+        for src_file in "${local_md_files[@]}"; do
+            filename=$(basename "$src_file")
+            lowercase_filename=$(echo "$filename" | tr '[:upper:]' '[:lower:]')
+            if [ -f "$DOCS_DIR/$lowercase_filename" ]; then
+                echo "WARNING: local doc '$filename' overwrites upstream doc '$lowercase_filename'" >&2
+            fi
+            cp "$src_file" "$DOCS_DIR/$lowercase_filename"
+        done
+        echo "Copied ${#local_md_files[@]} local doc(s) into $DOCS_DIR"
+    fi
+fi
+
 echo "Docs fetched and processed successfully into $DOCS_DIR"
