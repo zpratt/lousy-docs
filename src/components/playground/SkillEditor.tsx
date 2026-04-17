@@ -55,6 +55,7 @@ const lineNumbersStyle: React.CSSProperties = {
     fontFamily: "'Courier New', Courier, monospace",
     marginLeft: "8px",
     overflow: "hidden",
+    minHeight: 0,
 };
 
 const textareaStyle: React.CSSProperties = {
