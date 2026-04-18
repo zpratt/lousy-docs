@@ -6,10 +6,15 @@ const PLACEHOLDER = `> paste your copilot-instructions.md or SKILL.md here...`;
 
 const LINE_COUNT = 12;
 
-// Approximate rendered line height (font-size: 0.8125rem × line-height: 1.7 ≈ 22px).
-// Used to convert DOM_DELTA_LINE wheel events to pixels so gutter scrolling
-// matches native textarea scrolling on line-mode mice (common on Linux/Firefox).
-const LINE_HEIGHT_PX = 22;
+const EDITOR_FONT_SIZE_REM = 0.8125;
+const EDITOR_LINE_HEIGHT = 1.7;
+
+// Computed from EDITOR_FONT_SIZE_REM and EDITOR_LINE_HEIGHT (assuming 16 px root
+// font size) so DOM_DELTA_LINE normalization stays in sync if the editor
+// typography changes.
+const LINE_HEIGHT_PX = Math.round(
+    EDITOR_FONT_SIZE_REM * 16 * EDITOR_LINE_HEIGHT,
+);
 
 const editorWrapperStyle: React.CSSProperties = {
     display: "flex",
@@ -38,8 +43,8 @@ const editorBodyStyle: React.CSSProperties = {
     flex: 1,
     overflow: "hidden",
     fontFamily: "'Courier New', Courier, monospace",
-    fontSize: "0.8125rem",
-    lineHeight: "1.7",
+    fontSize: `${EDITOR_FONT_SIZE_REM}rem`,
+    lineHeight: EDITOR_LINE_HEIGHT,
 };
 
 const lineNumbersStyle: React.CSSProperties = {
@@ -50,8 +55,8 @@ const lineNumbersStyle: React.CSSProperties = {
     userSelect: "none",
     backgroundColor: "#1a1c18",
     flexShrink: 0,
-    lineHeight: "1.7",
-    fontSize: "0.8125rem",
+    lineHeight: EDITOR_LINE_HEIGHT,
+    fontSize: `${EDITOR_FONT_SIZE_REM}rem`,
     fontFamily: "'Courier New', Courier, monospace",
     marginLeft: "8px",
     overflow: "hidden",
@@ -65,8 +70,8 @@ const textareaStyle: React.CSSProperties = {
     border: "none",
     padding: "16px",
     fontFamily: "'Courier New', Courier, monospace",
-    fontSize: "0.8125rem",
-    lineHeight: "1.7",
+    fontSize: `${EDITOR_FONT_SIZE_REM}rem`,
+    lineHeight: EDITOR_LINE_HEIGHT,
     resize: "none",
     display: "block",
     minHeight: 0,
