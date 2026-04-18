@@ -20,9 +20,9 @@
     "dependencies": {
         "@astrojs/react": "5.0.3",
         "@astrojs/sitemap": "3.7.2",
-        "@lousy-agents/lint": "5.10.0",
-        "antd": "6.3.5",
-        "astro": "6.1.7",
+        "@lousy-agents/lint": "5.11.1",
+        "antd": "6.3.6",
+        "astro": "6.1.8",
         "astro-pagefind": "1.8.6",
         "pino": "10.3.1",
         "react": "19.2.5",
@@ -32,7 +32,7 @@
     },
     "devDependencies": {
         "@biomejs/biome": "2.4.12",
-        "@lousy-agents/mcp": "5.10.0",
+        "@lousy-agents/mcp": "5.11.1",
         "@modelcontextprotocol/server-sequential-thinking": "2025.12.18",
         "@playwright/mcp": "0.0.70",
         "@playwright/test": "1.59.1",
@@ -49,8 +49,8 @@
         "esbuild": "0.28.0",
         "happy-dom": "20.9.0",
         "jsdom": "29.0.2",
-        "msw": "2.13.3",
-        "typescript": "6.0.2",
+        "msw": "2.13.4",
+        "typescript": "6.0.3",
         "vitest": "4.1.4",
         "whatwg-fetch": "3.6.20",
         "wrangler": "4.83.0"

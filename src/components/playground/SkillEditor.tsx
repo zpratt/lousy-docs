@@ -1,8 +1,25 @@
 import { Button } from "antd";
 import { useCallback, useRef } from "react";
 import { TerminalWindow } from "@/components/playground/TerminalWindow";
+import type { PlaygroundLintTarget } from "@/use-cases/lint-skill-content";
 
-const PLACEHOLDER = `> paste your copilot-instructions.md or SKILL.md here...`;
+const PLACEHOLDERS: Record<PlaygroundLintTarget, string> = {
+    skill: `> paste your SKILL.md here...\n>\n> Example:\n> ---\n> name: my-skill\n> description: A description of the skill\n> allowed-tools: grep\n> ---`,
+    agent: `> paste your agent.md file here...\n>\n> Example:\n> ---\n> name: my-agent\n> description: A description of the agent\n> ---`,
+    instruction: `> paste your copilot-instructions.md or CLAUDE.md here...`,
+};
+
+const TARGET_LABELS: Record<PlaygroundLintTarget, string> = {
+    skill: "SKILL.md",
+    agent: "agent.md",
+    instruction: "copilot-instructions.md / CLAUDE.md",
+};
+
+const ARIA_LABELS: Record<PlaygroundLintTarget, string> = {
+    skill: "Skill Markdown",
+    agent: "Agent Markdown",
+    instruction: "Instruction Markdown",
+};
 
 const LINE_COUNT = 12;
 
@@ -96,7 +113,7 @@ const tabButtonBaseStyle: React.CSSProperties = {
     fontWeight: 700,
     letterSpacing: "0.05em",
     textTransform: "uppercase",
-    cursor: "default",
+    cursor: "pointer",
     border: "1px solid rgba(70, 72, 62, 0.3)",
     backgroundColor: "transparent",
     color: "rgba(230, 234, 216, 0.6)",
@@ -105,6 +122,7 @@ const tabButtonBaseStyle: React.CSSProperties = {
 
 const tabButtonActiveStyle: React.CSSProperties = {
     ...tabButtonBaseStyle,
+    cursor: "default",
     border: "1px solid rgba(189, 206, 137, 0.5)",
     backgroundColor: "#bdce89",
     color: "#121410",
@@ -164,11 +182,26 @@ interface SkillEditorProps {
     value: string;
     onChange: (value: string) => void;
     onRun: () => void;
+    activeTarget: PlaygroundLintTarget;
+    onTargetChange: (target: PlaygroundLintTarget) => void;
 }
 
-export function SkillEditor({ value, onChange, onRun }: SkillEditorProps) {
+const TARGET_TABS: { key: PlaygroundLintTarget; label: string }[] = [
+    { key: "skill", label: "SKILLS" },
+    { key: "agent", label: "AGENTS" },
+    { key: "instruction", label: "INSTRUCTIONS" },
+];
+
+export function SkillEditor({
+    value,
+    onChange,
+    onRun,
+    activeTarget,
+    onTargetChange,
+}: SkillEditorProps) {
     const lineNumbersRef = useRef<HTMLDivElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
+    const tablistRef = useRef<HTMLDivElement>(null);
 
     const handleEditorScroll = useCallback(
         (e: React.UIEvent<HTMLTextAreaElement>) => {
@@ -206,43 +239,82 @@ export function SkillEditor({ value, onChange, onRun }: SkillEditorProps) {
         },
         [],
     );
-
     const lines = value ? value.split("\n").length : LINE_COUNT;
     const lineNumbers = Array.from(
         { length: Math.max(lines, LINE_COUNT) },
         (_, i) => i + 1,
     );
 
+    const handleTabKeyDown = useCallback(
+        (e: React.KeyboardEvent<HTMLDivElement>) => {
+            const currentIndex = TARGET_TABS.findIndex(
+                (tab) => tab.key === activeTarget,
+            );
+            let nextIndex: number | null = null;
+
+            if (e.key === "ArrowRight") {
+                nextIndex = (currentIndex + 1) % TARGET_TABS.length;
+            } else if (e.key === "ArrowLeft") {
+                nextIndex =
+                    (currentIndex - 1 + TARGET_TABS.length) %
+                    TARGET_TABS.length;
+            } else if (e.key === "Home") {
+                nextIndex = 0;
+            } else if (e.key === "End") {
+                nextIndex = TARGET_TABS.length - 1;
+            }
+
+            if (nextIndex !== null && nextIndex !== currentIndex) {
+                e.preventDefault();
+                const nextTab = TARGET_TABS[nextIndex];
+                if (nextTab) {
+                    onTargetChange(nextTab.key);
+                    const buttons =
+                        tablistRef.current?.querySelectorAll<HTMLButtonElement>(
+                            '[role="tab"]',
+                        );
+                    buttons?.[nextIndex]?.focus();
+                }
+            }
+        },
+        [activeTarget, onTargetChange],
+    );
+
     return (
         <TerminalWindow title="INPUT_TARGET // MODULE_01">
             <div style={editorWrapperStyle}>
                 <div style={tabBarStyle}>
-                    <div style={{ display: "flex", gap: "4px" }}>
-                        <button
-                            type="button"
-                            style={tabButtonBaseStyle}
-                            disabled
-                            aria-disabled="true"
-                        >
-                            SKILLS
-                        </button>
-                        <button
-                            type="button"
-                            style={tabButtonBaseStyle}
-                            disabled
-                            aria-disabled="true"
-                        >
-                            AGENTS
-                        </button>
-                        <button
-                            type="button"
-                            className="playground-tab"
-                            style={tabButtonActiveStyle}
-                            tabIndex={-1}
-                            aria-current="true"
-                        >
-                            INSTRUCTIONS
-                        </button>
+                    <div
+                        style={{ display: "flex", gap: "4px" }}
+                        role="tablist"
+                        aria-label="Lint target type"
+                        ref={tablistRef}
+                        onKeyDown={handleTabKeyDown}
+                    >
+                        {TARGET_TABS.map((tab) => (
+                            <button
+                                key={tab.key}
+                                type="button"
+                                role="tab"
+                                className="playground-tab"
+                                style={
+                                    activeTarget === tab.key
+                                        ? tabButtonActiveStyle
+                                        : tabButtonBaseStyle
+                                }
+                                onClick={() => {
+                                    if (tab.key !== activeTarget) {
+                                        onTargetChange(tab.key);
+                                    }
+                                }}
+                                aria-selected={activeTarget === tab.key}
+                                id={`tab-${tab.key}`}
+                                tabIndex={activeTarget === tab.key ? 0 : -1}
+                                aria-controls="editor-tabpanel"
+                            >
+                                {tab.label}
+                            </button>
+                        ))}
                     </div>
                     <Button
                         className="playground-btn"
@@ -252,39 +324,51 @@ export function SkillEditor({ value, onChange, onRun }: SkillEditorProps) {
                         ▶ RUN_LINT
                     </Button>
                 </div>
-                <div style={fileInfoBarStyle}>
-                    <span>SOURCE_FILE: copilot-instructions.md</span>
-                    <span>UTF-8 | LF | MD</span>
-                </div>
-                <div style={editorBodyStyle}>
-                    <div
-                        ref={lineNumbersRef}
-                        data-testid="line-numbers"
-                        style={lineNumbersStyle}
-                        aria-hidden="true"
-                        onWheel={handleGutterWheel}
-                    >
-                        {lineNumbers.map((n) => (
-                            <div key={n}>{n}</div>
-                        ))}
+                <div
+                    id="editor-tabpanel"
+                    role="tabpanel"
+                    aria-labelledby={`tab-${activeTarget}`}
+                    // biome-ignore lint/a11y/noNoninteractiveTabindex: WAI-ARIA tabpanel role requires tabIndex="0" for keyboard focusability per APG tabs pattern
+                    tabIndex={0}
+                >
+                    <div style={fileInfoBarStyle}>
+                        <span>SOURCE_FILE: {TARGET_LABELS[activeTarget]}</span>
+                        <span>UTF-8 | LF | MD</span>
                     </div>
-                    <textarea
-                        ref={textareaRef}
-                        id="skill-editor"
-                        className="playground-editor"
-                        aria-label="Skill Markdown"
-                        style={textareaStyle}
-                        value={value}
-                        onChange={(e) => onChange(e.target.value)}
-                        onScroll={handleEditorScroll}
-                        placeholder={PLACEHOLDER}
-                        spellCheck={false}
-                    />
+                    <div style={editorBodyStyle}>
+                        <div
+                            ref={lineNumbersRef}
+                            data-testid="line-numbers"
+                            style={lineNumbersStyle}
+                            aria-hidden="true"
+                            onWheel={handleGutterWheel}
+                        >
+                            {lineNumbers.map((n) => (
+                                <div key={n}>{n}</div>
+                            ))}
+                        </div>
+                        <textarea
+                            ref={textareaRef}
+                            id="skill-editor"
+                            className="playground-editor"
+                            aria-label={ARIA_LABELS[activeTarget]}
+                            style={textareaStyle}
+                            value={value}
+                            onChange={(e) => onChange(e.target.value)}
+                            onScroll={handleEditorScroll}
+                            placeholder={PLACEHOLDERS[activeTarget]}
+                            spellCheck={false}
+                        />
+                    </div>
                 </div>
                 <div style={exampleLinksStyle}>
                     <button
                         type="button"
-                        style={exampleLinkActiveStyle}
+                        style={
+                            activeTarget === "instruction"
+                                ? exampleLinkActiveStyle
+                                : exampleLinkStyle
+                        }
                         disabled
                         aria-disabled="true"
                     >
@@ -292,7 +376,11 @@ export function SkillEditor({ value, onChange, onRun }: SkillEditorProps) {
                     </button>
                     <button
                         type="button"
-                        style={exampleLinkStyle}
+                        style={
+                            activeTarget === "skill"
+                                ? exampleLinkActiveStyle
+                                : exampleLinkStyle
+                        }
                         disabled
                         aria-disabled="true"
                     >
@@ -300,7 +388,11 @@ export function SkillEditor({ value, onChange, onRun }: SkillEditorProps) {
                     </button>
                     <button
                         type="button"
-                        style={exampleLinkStyle}
+                        style={
+                            activeTarget === "agent"
+                                ? exampleLinkActiveStyle
+                                : exampleLinkStyle
+                        }
                         disabled
                         aria-disabled="true"
                     >

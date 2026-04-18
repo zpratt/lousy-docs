@@ -10,8 +10,8 @@ import { createSkillContentLintGateway } from "@/gateways/skill-content-lint-gat
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { HEADER_HEIGHT_PX } from "@/lib/layout-constants";
 import {
-    LintSkillContentUseCase,
-    PLAYGROUND_FILE_PATH,
+    type PlaygroundLintTarget,
+    PlaygroundLintUseCase,
     type SkillContentLintGateway,
 } from "@/use-cases/lint-skill-content";
 
@@ -230,10 +230,12 @@ export function PlaygroundPage({
     const [navDrawerOpen, setNavDrawerOpen] = useState(false);
     const [content, setContent] = useState("");
     const [result, setResult] = useState<LintOutput | null>(null);
+    const [activeTarget, setActiveTarget] =
+        useState<PlaygroundLintTarget>("skill");
 
     const lintUseCase = useMemo(() => {
         const gw = injectedGateway ?? createSkillContentLintGateway();
-        return new LintSkillContentUseCase(gw);
+        return new PlaygroundLintUseCase(gw);
     }, [injectedGateway]);
 
     const handleMenuToggle = useCallback(() => {
@@ -244,37 +246,30 @@ export function PlaygroundPage({
         setNavDrawerOpen(false);
     }, []);
 
+    const handleTargetChange = useCallback((target: PlaygroundLintTarget) => {
+        setActiveTarget(target);
+        setContent("");
+        setResult(null);
+    }, []);
+
     const handleRunLint = useCallback(async () => {
         try {
             const output = await lintUseCase.execute({
                 content,
+                target: activeTarget,
             });
             setResult(output);
         } catch (error: unknown) {
             const message =
                 error instanceof Error ? error.message : "Unknown lint error";
-            setResult({
-                diagnostics: [
-                    {
-                        filePath: PLAYGROUND_FILE_PATH,
-                        line: 1,
-                        severity: "error",
-                        message: `Lint execution failed: ${message}`,
-                        ruleId: "skill/internal-error",
-                        target: "skill",
-                    },
-                ],
-                target: "skill",
-                filesAnalyzed: [PLAYGROUND_FILE_PATH],
-                summary: {
-                    totalFiles: 1,
-                    totalErrors: 1,
-                    totalWarnings: 0,
-                    totalInfos: 0,
-                },
-            });
+            setResult(
+                PlaygroundLintUseCase.createInternalErrorOutput(
+                    activeTarget,
+                    message,
+                ),
+            );
         }
-    }, [content, lintUseCase]);
+    }, [content, lintUseCase, activeTarget]);
 
     return (
         <AntDProvider>
@@ -330,6 +325,8 @@ export function PlaygroundPage({
                                     value={content}
                                     onChange={setContent}
                                     onRun={handleRunLint}
+                                    activeTarget={activeTarget}
+                                    onTargetChange={handleTargetChange}
                                 />
                             </div>
                             <div style={{ minHeight: "300px" }}>
@@ -349,6 +346,8 @@ export function PlaygroundPage({
                                         value={content}
                                         onChange={setContent}
                                         onRun={handleRunLint}
+                                        activeTarget={activeTarget}
+                                        onTargetChange={handleTargetChange}
                                     />
                                 </div>
                                 <div style={rightPanelStyle}>

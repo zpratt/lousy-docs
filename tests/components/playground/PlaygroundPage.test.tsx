@@ -1,8 +1,11 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import Chance from "chance";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { PlaygroundPage } from "@/components/playground/PlaygroundPage";
 import type { SkillContentLintGateway } from "@/use-cases/lint-skill-content";
+
+const chance = new Chance();
 
 describe("PlaygroundPage", () => {
     let originalMatchMedia: typeof window.matchMedia;
@@ -112,6 +115,25 @@ describe("PlaygroundPage", () => {
         });
     });
 
+    describe("given the user switches the active target tab", () => {
+        it("should clear the textarea content when switching targets", async () => {
+            const user = userEvent.setup();
+            render(<PlaygroundPage />);
+
+            const textarea = screen.getByRole("textbox", {
+                name: /skill markdown/i,
+            });
+            await user.clear(textarea);
+            await user.type(textarea, chance.sentence());
+
+            await user.click(screen.getByRole("tab", { name: "AGENTS" }));
+
+            expect(
+                screen.getByRole("textbox", { name: /agent markdown/i }),
+            ).toHaveValue("");
+        });
+    });
+
     describe("given the gateway throws an unexpected error", () => {
         it("should display an internal error diagnostic", async () => {
             const failingGateway: SkillContentLintGateway = {
@@ -119,6 +141,11 @@ describe("PlaygroundPage", () => {
                     throw new Error("Unexpected parse failure");
                 },
                 validateFrontmatter: () => ({
+                    success: false,
+                    issues: [],
+                    unknownFields: [],
+                }),
+                validateAgentFrontmatter: () => ({
                     success: false,
                     issues: [],
                     unknownFields: [],
