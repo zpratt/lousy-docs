@@ -161,7 +161,9 @@ export const HomepageFeatureInventoryItemSchema = z.object({
     fallbackDocsHref: z.literal('/docs/quickstart').optional(),
     fallbackContentSlug: z.literal('quickstart').optional(),
 }).refine(
-    (feature) => Boolean(feature.fallbackDocsHref) === Boolean(feature.fallbackContentSlug),
+    (feature) =>
+        (feature.fallbackDocsHref !== undefined) ===
+        (feature.fallbackContentSlug !== undefined),
     { message: 'Fallback href and content slug must be configured together' },
 );
 
@@ -270,7 +272,7 @@ If a card's dedicated docs slug is not present in the collection, the selector e
 
 - [ ] **OQ-1 (product):** Should we keep a "workflow narrative" section after deleting `SpecDrivenSection`, or is the documented Quickstart flow already represented well enough by the feature cards alone? *Recommendation: keep a `QuickstartFlowSection` rendering the three documented Quickstart steps because it preserves the visual rhythm of the page and gives a strong CTA to `/docs/quickstart`. Confirm before Task 4.*
 - [ ] **OQ-2 (product):** Do we want to retain the mascot "Developer Patch" callout card visually but with documented content (e.g. a "Pro tip: run `lint` in CI" pointing to `/docs/quickstart#2-enforce-quality-in-ci-lint`), or remove that visual element entirely? *Recommendation: remove for now; reintroduce only if/when there is a documented tip with a stable anchor.*
-- [x] **OQ-3 (engineering):** ~~Should the inventory live in `src/lib/` (used by Astro build) or `src/entities/` (per Clean Architecture rules in `.github/instructions/software-architecture.instructions.md`)?~~ **Resolved** — place schema + types in `src/entities/feature.ts`, place the selector in `src/use-cases/select-available-features.ts`, and keep the seeded inventory data in `src/lib/documented-features.ts`.
+- [x] **OQ-3 (engineering):** ~~Should the inventory live in `src/lib/` (used by Astro build) or `src/entities/` (per Clean Architecture rules in `.github/copilot-instructions.md` and `.github/instructions/software-architecture.instructions.md`)?~~ **Resolved** — place schema + types in `src/entities/feature.ts`, place the selector in `src/use-cases/select-available-features.ts`, and keep the seeded inventory data in `src/lib/documented-features.ts`.
 - [x] **OQ-4 (content):** ~~When upstream `docs/init.md`, `docs/lint.md`, `docs/mcp-server.md`, `docs/copilot-setup.md`, and `docs/new.md` are fetched into `src/content/docs/`, should each card's `docsHref` switch from `/docs/quickstart` to the per-command page automatically?~~ **Resolved** — the inventory now stores `primaryDocsHref`/`primaryContentSlug` and optional `fallbackDocsHref`/`fallbackContentSlug` separately, and the selector resolves the final `docsHref` based on content availability.
 
 ---
