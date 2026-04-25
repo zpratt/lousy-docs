@@ -58,13 +58,13 @@ so that I can **drill into the docs to verify each claim before adopting the too
 
 #### Acceptance Criteria
 
-- [ ] The features section shall render exactly one card per documented feature listed in the Documented Feature Inventory table.
+- [ ] The features section shall render exactly one card per documented feature listed in the Documented Feature Inventory table when that feature's primary docs slug or explicitly allowed fallback docs slug is present in the docs collection.
 - [ ] Each feature card shall use the documented feature's name (e.g. `init`, `lint`, `MCP Server`, `Agent Shell`) rather than invented module names (`CLI Engine`, `Smart Linting`).
 - [ ] Each feature card description shall paraphrase language from the corresponding docs page and shall not introduce capabilities not described in that page.
 - [ ] The MCP Server card shall expand `MCP` as `Model Context Protocol`, not `Multi-Agent Control Protocol`.
 - [ ] The Agent Shell card shall describe it as an audit-trail wrapper around npm's `script-shell` (matching `src/content/local-docs/readme.md`), not a sandboxed runtime.
 - [ ] Each feature card shall include a link to the docs page for that feature; the link shall resolve to a 200 page in the built site.
-- [ ] If a feature's docs page is not yet present in the local content collection, then the feature shall be omitted from the homepage rather than linking to a 404.
+- [ ] If a feature's dedicated docs page is not yet present in the local content collection, then the feature shall link to an explicitly allowed `/docs/quickstart` fallback whose `quickstart` slug is present or be omitted from the homepage rather than linking to a 404.
 - [ ] Feature cards shall not display fabricated version labels (e.g. `v2.0.1 // system.bin`); version metadata, if shown, shall be derived from real package metadata or omitted.
 
 ### Story 3: Remove fabricated "Spec-Driven Development" pillars section
@@ -124,17 +124,19 @@ so that I can **search the docs for any term I see on the homepage and find a ma
 ### Components Affected
 
 - `src/components/home/HeroSection.tsx` — Replace marketing claims with documented capability summary; remove `agent_v2.0.1` label; ensure terminal mock uses the documented `npx @lousy-agents/cli@latest init` command and accurate output.
-- `src/components/home/CoreModulesSection.tsx` — Replace the four invented modules with documented features from the inventory (`init`, `lint`, `MCP Server`, `Agent Shell`, optionally `new` and `copilot-setup`); add learn-more link per card; remove `accentColor` per fictional "version" string label or replace with neutral metadata.
+- `src/components/home/CoreModulesSection.tsx` — Replace the four invented modules with documented features from the inventory (`init`, `new`, `lint`, `copilot-setup`, `MCP Server`, `Agent Shell`) whenever their primary docs slug or allowed fallback slug is present; add learn-more link per card; remove `accentColor` per fictional "version" string label or replace with neutral metadata.
 - `src/components/home/SpecDrivenSection.tsx` — **Delete** (and remove its mount from `HomePage.tsx`) **or** rewrite as a `QuickstartFlowSection` rendering the three documented Quickstart steps with a CTA to `/docs/quickstart`. Decision recorded in Open Questions.
 - `src/components/home/DeveloperPatch.tsx` — **Delete** (and remove its mount from `HomePage.tsx`).
 - `src/components/home/HomePage.tsx` — Update the section composition to reflect the new component set; preserve `AntDProvider`, `SiteHeader`, `SiteFooter`, `MobileNavDrawer` wiring; preserve the `client:only="react"` mount in `src/pages/index.astro`.
-- `src/lib/documented-features.ts` *(new)* — Single source of truth for the homepage feature list. Exports a typed array of `{ id, title, description, docsHref, available }` and a `getAvailableFeatures(docs)` selector that filters by content collection presence. Validated with Zod.
+- `src/entities/feature.ts` *(new)* — Defines Zod schemas and types for inventory items (`{ id, title, summary, primaryDocsHref, primaryContentSlug, fallbackDocsHref?, fallbackContentSlug? }`) and selector-resolved features (`{ id, title, summary, docsHref }`).
+- `src/use-cases/select-available-features.ts` *(new)* — Pure selector that resolves each inventory item to a renderable feature with a single `docsHref`, using the primary route when available, an explicit fallback when allowed, or omission when no docs route can be resolved.
+- `src/lib/documented-features.ts` *(new)* — Single source of truth for the homepage feature list. Exports the seeded inventory array validated with the entity schema.
 - `tests/components/home/HeroSection.test.tsx` — Update assertions to match new copy and links.
 - `tests/components/home/CoreModulesSection.test.tsx` — Replace assertions to match documented-feature cards; add tests for: link presence per card, MCP expansion, no fabricated version labels, no fictional terms.
 - `tests/components/home/SpecDrivenSection.test.tsx` — Delete (or rewrite as `QuickstartFlowSection.test.tsx`).
 - `tests/components/home/DeveloperPatch.test.tsx` — Delete.
 - `tests/components/home/HomePage.test.tsx` — Update to assert removed sections are not rendered and new section composition is correct.
-- `tests/lib/documented-features.test.ts` *(new)* — Validate the selector against fixture content collections and assert that the inventory matches the docs collection.
+- `tests/lib/documented-features.test.ts` *(new)* — Validate the inventory shape and assert that every configured primary/fallback docs link is represented by the docs collection or an allowed fallback.
 - `tests/e2e/homepage.spec.ts` *(new or extended)* — Smoke test that every homepage link resolves (status 200) when running against the built site (`npm run test:e2e:dist`).
 
 ### Dependencies
@@ -144,33 +146,56 @@ so that I can **search the docs for any term I see on the homepage and find a ma
 
 ### Data Model
 
-A new typed inventory module describes the homepage feature list and its docs binding:
+A new typed feature entity describes the homepage feature inventory and its docs binding. The source inventory preserves the difference between a preferred per-feature docs route and the only allowed fallback (`/docs/quickstart`) so the implementation can resolve links deterministically:
 
 ```ts
-// src/lib/documented-features.ts
+// src/entities/feature.ts
 import { z } from 'zod';
 
-export const FeatureSchema = z.object({
+export const HomepageFeatureInventoryItemSchema = z.object({
     id: z.string(),                    // 'init' | 'lint' | 'mcp-server' | 'agent-shell' | ...
     title: z.string(),                 // Human label shown on the card
     summary: z.string(),               // 1–2 sentence paraphrase of the docs page
-    docsHref: z.string(),              // '/docs/quickstart', '/docs/lint', etc.
-    requiresContentSlug: z.string(),   // slug that must be present in content collection
-});
+    primaryDocsHref: z.string(),       // preferred dedicated route, e.g. '/docs/lint'
+    primaryContentSlug: z.string(),    // slug that must exist for primaryDocsHref
+    fallbackDocsHref: z.literal('/docs/quickstart').optional(),
+    fallbackContentSlug: z.literal('quickstart').optional(),
+}).refine(
+    (feature) => Boolean(feature.fallbackDocsHref) === Boolean(feature.fallbackContentSlug),
+    { message: 'Fallback href and content slug must be configured together' },
+);
 
-export type Feature = z.infer<typeof FeatureSchema>;
+export const ResolvedHomepageFeatureSchema =
+    HomepageFeatureInventoryItemSchema.omit({
+        primaryDocsHref: true,
+        primaryContentSlug: true,
+        fallbackDocsHref: true,
+        fallbackContentSlug: true,
+    }).extend({ docsHref: z.string() });
+
+export type HomepageFeatureInventoryItem = z.infer<
+    typeof HomepageFeatureInventoryItemSchema
+>;
+export type ResolvedHomepageFeature = z.infer<typeof ResolvedHomepageFeatureSchema>;
 ```
 
 Selector:
 
 ```ts
+// src/use-cases/select-available-features.ts
 export function selectAvailableFeatures(
-    inventory: readonly Feature[],
+    inventory: readonly HomepageFeatureInventoryItem[],
     availableSlugs: ReadonlySet<string>,
-): Feature[];
+): ResolvedHomepageFeature[];
 ```
 
-Used by `CoreModulesSection` and (if retained) `QuickstartFlowSection` so a feature only renders when its docs slug is present in the content collection — implementing the "documented or omitted" rule.
+Used by `CoreModulesSection` and (if retained) `QuickstartFlowSection` so a feature renders only with a resolved docs link:
+
+1. If `primaryContentSlug` is present in `availableSlugs`, resolve `docsHref` to `primaryDocsHref`.
+2. If `primaryContentSlug` is missing from `availableSlugs`, `fallbackDocsHref` is `/docs/quickstart`, and `fallbackContentSlug` (`quickstart`) is present in `availableSlugs`, resolve `docsHref` to `fallbackDocsHref`.
+3. If neither the primary slug nor the allowed fallback slug is present, omit the feature.
+
+`docsHref` is therefore an output-only field. Source inventory entries must keep `primaryDocsHref`, `primaryContentSlug`, `fallbackDocsHref`, and `fallbackContentSlug` separate so route existence and fallback behavior are implementable and testable.
 
 ### Data Flow Diagram
 
@@ -196,17 +221,18 @@ Used by `CoreModulesSection` and (if retained) `QuickstartFlowSection` so a feat
          ▼                   ▼                   ▼
    ┌───────────┐    ┌───────────────────┐   ┌─────────────────────┐
    │ HeroSect. │    │ CoreModulesSection│   │ QuickstartFlowSect. │
-   │ static    │    │ uses selector:    │   │ uses 3 quickstart   │
-   │ copy +    │    │  inventory ∩      │   │ steps, links to     │
-   │ doc links │    │  availableSlugs   │   │ /docs/quickstart    │
+   │ static    │    │ uses selector to  │   │ uses 3 quickstart   │
+   │ copy +    │    │ resolve docsHref  │   │ steps, links to     │
+   │ doc links │    │ from available    │   │ /docs/quickstart    │
+   │           │    │ slugs + fallback  │   │                     │
    └───────────┘    └─────────┬─────────┘   └─────────────────────┘
                               │
                               ▼
                   ┌────────────────────────┐
                   │ src/lib/documented-    │
-                  │ features.ts (Zod)      │
-                  │ - FeatureSchema        │
-                  │ - selectAvailable…     │
+                  │ features.ts inventory  │
+                  │ src/use-cases/select-  │
+                  │ available-features.ts  │
                   └────────────────────────┘
 ```
 
@@ -225,7 +251,7 @@ Visitor          Astro build           HomePage (island)        Selector        
    │                  │   props={slugs}      │                     │                       │
    │                  │                      │── selectAvailable ─▶│                       │
    │                  │                      │   Features          │                       │
-   │                  │                      │◀── Feature[] ───────│                       │
+   │                  │                      │◀── Resolved[] ───────│                       │
    │                  │                      │                     │                       │
    │                  │                      │ render Hero +       │                       │
    │                  │                      │ filtered Core cards │                       │
@@ -238,14 +264,14 @@ Visitor          Astro build           HomePage (island)        Selector        
    │◀──────────────────────── docs page (200) ────────────────────────────────────────────│
 ```
 
-If a card's docs slug is not present in the collection, the selector returns an inventory subset that excludes it — guaranteeing the click flow above never resolves to a 404.
+If a card's dedicated docs slug is not present in the collection, the selector either resolves the card to an explicitly allowed fallback link or excludes it — guaranteeing the click flow above never resolves to a 404.
 
 ### Open Questions
 
 - [ ] **OQ-1 (product):** Should we keep a "workflow narrative" section after deleting `SpecDrivenSection`, or is the documented Quickstart flow already represented well enough by the feature cards alone? *Recommendation: keep a `QuickstartFlowSection` rendering the three documented Quickstart steps because it preserves the visual rhythm of the page and gives a strong CTA to `/docs/quickstart`. Confirm before Task 4.*
 - [ ] **OQ-2 (product):** Do we want to retain the mascot "Developer Patch" callout card visually but with documented content (e.g. a "Pro tip: run `lint` in CI" pointing to `/docs/quickstart#2-enforce-quality-in-ci-lint`), or remove that visual element entirely? *Recommendation: remove for now; reintroduce only if/when there is a documented tip with a stable anchor.*
-- [ ] **OQ-3 (engineering):** Should the inventory live in `src/lib/` (used by Astro build) or `src/entities/` (per Clean Architecture rules in `.github/instructions/software-architecture.instructions.md`)? *Recommendation: place schema + types in `src/entities/feature.ts`, place the selector in `src/use-cases/select-available-features.ts`, and keep the seeded inventory data in `src/lib/documented-features.ts`. Confirm in Task 1.*
-- [ ] **OQ-4 (content):** ~~When upstream `docs/init.md`, `docs/lint.md`, `docs/mcp-server.md`, `docs/copilot-setup.md`, and `docs/new.md` are fetched into `src/content/docs/`, should each card's `docsHref` switch from `/docs/quickstart` to the per-command page automatically?~~ **Resolved by the inventory update** — the inventory now links directly to per-command pages (e.g. `/docs/init`, `/docs/lint`, `/docs/mcp-server`) with `/docs/quickstart` as a fallback, eliminating the need for the selector to handle per-command promotion separately.
+- [x] **OQ-3 (engineering):** ~~Should the inventory live in `src/lib/` (used by Astro build) or `src/entities/` (per Clean Architecture rules in `.github/instructions/software-architecture.instructions.md`)?~~ **Resolved** — place schema + types in `src/entities/feature.ts`, place the selector in `src/use-cases/select-available-features.ts`, and keep the seeded inventory data in `src/lib/documented-features.ts`.
+- [x] **OQ-4 (content):** ~~When upstream `docs/init.md`, `docs/lint.md`, `docs/mcp-server.md`, `docs/copilot-setup.md`, and `docs/new.md` are fetched into `src/content/docs/`, should each card's `docsHref` switch from `/docs/quickstart` to the per-command page automatically?~~ **Resolved** — the inventory now stores `primaryDocsHref`/`primaryContentSlug` and optional `fallbackDocsHref`/`fallbackContentSlug` separately, and the selector resolves the final `docsHref` based on content availability.
 
 ---
 
@@ -259,10 +285,10 @@ If a card's docs slug is not present in the collection, the selector returns an 
 
 **Objective**: Create the typed inventory module and `selectAvailableFeatures` use case, with Zod validation and full unit-test coverage, so downstream homepage components can render only documented features.
 
-**Context**: Extracts homepage feature copy from JSX into a single, testable, validated source. Implements the "documented or omitted" rule.
+**Context**: Extracts homepage feature copy from JSX into a single, testable, validated source. Implements the "documented, fallback, or omitted" rule.
 
 **Affected files**:
-- `src/entities/feature.ts` *(new — `FeatureSchema` and `Feature` type)*
+- `src/entities/feature.ts` *(new — inventory-item schema/type plus resolved-feature schema/type)*
 - `src/use-cases/select-available-features.ts` *(new — pure selector)*
 - `src/lib/documented-features.ts` *(new — seeded inventory data)*
 - `tests/use-cases/select-available-features.test.ts` *(new)*
@@ -270,9 +296,10 @@ If a card's docs slug is not present in the collection, the selector returns an 
 
 **Requirements**:
 - Implements Story 2 (cards reflect documented features) and Story 5 (no broken links).
-- Schema validates each feature has `id`, `title`, `summary`, `docsHref`, `requiresContentSlug`.
-- Selector returns features whose `requiresContentSlug` is in the provided slug set, preserving inventory order.
-- Inventory seeds entries for `init`, `lint`, `mcp-server`, `agent-shell` at minimum; entries for `new` and `copilot-setup` are added but conditionally selected based on slug availability.
+- Schema validates each inventory item has `id`, `title`, `summary`, `primaryDocsHref`, `primaryContentSlug`, optional `fallbackDocsHref`, and optional `fallbackContentSlug`.
+- Selector returns resolved features with a single `docsHref`, preserving inventory order.
+- Selector links to `primaryDocsHref` when the dedicated docs slug is present, falls back only to `/docs/quickstart` when both `fallbackDocsHref` and `fallbackContentSlug` are configured and the `quickstart` slug is present, and omits features with no resolvable docs route.
+- Inventory seeds entries for all six documented features: `init`, `new`, `lint`, `copilot-setup`, `mcp-server`, and `agent-shell`.
 - Tests follow the AAA pattern, use Chance.js for fixtures, and never mock fetch directly (no HTTP in this module).
 
 **Verification**:
@@ -282,8 +309,8 @@ If a card's docs slug is not present in the collection, the selector returns an 
 
 **Done when**:
 - [ ] All verification steps pass
-- [ ] Selector covers happy path, empty inventory, empty slug set, and unknown slugs
-- [ ] Inventory includes `init`, `lint`, `mcp-server`, `agent-shell` entries
+- [ ] Selector covers happy path, empty inventory, empty slug set, fallback resolution, omitted features without a fallback, and unknown slugs
+- [ ] Inventory includes `init`, `new`, `lint`, `copilot-setup`, `mcp-server`, and `agent-shell` entries
 
 ---
 
@@ -304,7 +331,7 @@ If a card's docs slug is not present in the collection, the selector returns an 
 **Requirements**:
 - Implements Story 2 and Story 6.
 - Removes hardcoded card data; consumes `selectAvailableFeatures(inventory, availableSlugs)`.
-- Each card renders title, summary, and a "Learn more →" link to `docsHref`.
+- Each card renders title, summary, and a "Learn more →" link to the selector-resolved `docsHref`.
 - MCP card title is `MCP Server`; summary expands as `Model Context Protocol`.
 - Agent Shell summary describes audit-trail wrapper of npm `script-shell` (matches `readme.md`).
 - No fabricated version strings (`v2.0.1`, etc.); the version metadata block is removed.
@@ -320,7 +347,7 @@ If a card's docs slug is not present in the collection, the selector returns an 
 
 **Done when**:
 - [ ] All verification steps pass
-- [ ] Cards render: `init`, `lint`, `MCP Server`, `Agent Shell` (and any others whose docs are present)
+- [ ] Cards render: `init`, `new`, `lint`, `copilot-setup`, `MCP Server`, and `Agent Shell` when those docs slugs are present in the local docs collection
 - [ ] All card links resolve in the built site
 
 ---
@@ -475,7 +502,7 @@ If a card's docs slug is not present in the collection, the selector returns an 
 
 ## Future Considerations
 
-- All per-command docs pages (`init`, `new`, `lint`, `copilot-setup`, `mcp-server`) are fetched by `scripts/fetch-docs.sh` and are already present in `src/content/docs/` after a successful build. The inventory links directly to each per-command page so no further `docsHref` promotion work is needed.
+- All per-command docs pages (`init`, `new`, `lint`, `copilot-setup`, `mcp-server`) are fetched by `scripts/fetch-docs.sh` and are already present in `src/content/docs/` after a successful build. The inventory stores direct per-command links as `primaryDocsHref`/`primaryContentSlug` and `/docs/quickstart` fallbacks as `fallbackDocsHref`/`fallbackContentSlug` where allowed, so no further `docsHref` promotion work is needed.
 - Consider promoting `agent-shell` from a feature card to its own narrative section once `/docs/agent-shell` is improved and stabilized as a long-term reference page.
 - Consider a `/about` (manifesto) page if the secondary hero CTA is reinstated.
 - Add a CI step that regenerates a "documented features" snapshot from `src/content/docs/` and fails the build if the homepage inventory drifts from it.
