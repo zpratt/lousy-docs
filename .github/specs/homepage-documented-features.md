@@ -60,7 +60,7 @@ so that I can **drill into the docs to verify each claim before adopting the too
 #### Acceptance Criteria
 
 - [ ] While a feature's primary content slug is present in the docs content collection, the `CoreModulesSection` shall render exactly one card for that feature linking to `primaryDocsHref`, drawn from the Documented Feature Inventory table.
-- [ ] While a feature's primary content slug is absent from the docs content collection and the `quickstart` fallback content slug is present, the `CoreModulesSection` shall render exactly one card for that feature linking to `/docs/quickstart`.
+- [ ] While a feature's primary content slug is absent from the docs content collection, the `CoreModulesSection` shall render exactly one card linking to that feature's configured `fallbackDocsHref` only when that specific feature has both `fallbackDocsHref` and `fallbackContentSlug` configured in the Documented Feature Inventory table and the configured fallback content slug is present in the docs content collection (for eligible features, this resolves to `/docs/quickstart`).
 - [ ] Each feature card shall use the documented feature's name (e.g. `init`, `lint`, `MCP Server`, `Agent Shell`) rather than invented module names (`CLI Engine`, `Smart Linting`).
 - [ ] Each feature card description shall paraphrase language from the corresponding docs page.
 - [ ] The homepage shall not introduce in a feature card description any capability not present in that card's corresponding docs page.
@@ -104,11 +104,11 @@ so that I do **not encounter dead ends**.
 
 #### Acceptance Criteria
 
-- [ ] The `HomePage` component shall not render any internal link (an `href` starting with `/`) that points to a route without a corresponding entry in the docs content collection or a static page in `src/pages`.
+- [ ] The `HomePage` component shall not render any internal link (an `href` starting with `/`) whose normalized path target (after stripping any `#...` fragment, any `?...` query string, and any trailing slash) does not correspond to an entry in the docs content collection or a static page in `src/pages`.
 - [ ] While no fallback equivalent is configured in the inventory, when the primary content slug for a link is absent from the docs collection, the `HomePage` component shall omit that link.
 - [ ] While a documented equivalent is configured in the inventory, when the primary content slug for a link is absent from the docs collection, the `HomePage` component shall render the link pointing to that equivalent (e.g. `/docs/quickstart`).
 - [ ] While a homepage link's `href` does not start with `/`, the link-integrity test shall exclude that link from the internal docs-page matching requirement.
-- [ ] If an internal homepage `href` is added in code that does not resolve to a valid internal route (a docs-collection slug or a `src/pages` entry), then the link-integrity unit test shall fail with a message identifying the unresolved `href`.
+- [ ] If an internal homepage `href` is added in code whose normalized path target (after stripping any `#...` fragment, any `?...` query string, and any trailing slash) does not resolve to a valid internal route (a docs-collection slug or a `src/pages` entry), then the link-integrity unit test shall fail with a message identifying the unresolved `href`.
 
 ### Story 6: Homepage copy is grounded in documentation, not jargon
 
