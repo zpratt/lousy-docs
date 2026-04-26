@@ -127,8 +127,8 @@ so that I do **not encounter dead ends**.
 >
 > **Standard link-normalization algorithm**: given an internal `href` (starting with `/`), produce a canonical path by:
 > 0. Lowercase the entire path.
-> 1. Strip any `#...` fragment (everything from the first `#` onwards).
-> 2. Strip any `?...` query string (everything from the first `?` onwards).
+> 1. Strip any `#...` fragment (everything from the first `#` onwards). *(Strip before decode so that percent-encoded delimiters like `%23` in the raw href are not mistaken for structural `#` characters; stripping first ensures `%23section` is preserved through step 3 and does not prematurely truncate the path.)*
+> 2. Strip any `?...` query string (everything from the first `?` onwards). *(Same rationale as step 1 for `%3F`.)*
 > 3. Decode any percent-encoded characters (e.g. `%2D` → `-`) using `decodeURIComponent`.
 > 4. Collapse any consecutive `/` separators to a single `/`.
 > 5. Strip any trailing slash — except the root path `/`, which is kept as-is.
@@ -151,10 +151,10 @@ so that I can **search the docs for any term I see on the homepage and find a ma
 
 - [ ] The homepage shall not introduce coined terms ("cognitive workloads", "operational perimeter", "hallucination loops", "feedback loop", "logic feedback loop") that are not present in the docs content collection.
 - [ ] The `CoreModulesSection` shall use the same term as the `h1` heading of each feature's corresponding docs page as that feature's card title (e.g. `lint`, not `Smart Linting`).
-- [ ] The `CoreModulesSection` shall not render a card title that is absent from every document in the docs content collection (matching is case-insensitive; a title is considered present if it appears as a substring within the concatenated text content of any document).
+
+> Note: Card titles map to the following `h1` headings in the docs: `init`, `new`, `lint`, `copilot-setup`, `MCP Server`, `Agent Shell`. These are verified by the Task 2 test assertions for card titles (Story 2 AC4) and by editorial review during PR code review.
 
 > Note: Verifying that card titles appear in the docs collection is confirmed by editorial review during PR code review. Any PR that modifies card titles must be reviewed against the docs collection.
-- [ ] The `CoreModulesSection` shall not render a card description containing a feature name that is absent from every document in the docs content collection (matching is case-insensitive; a feature name is considered present if it appears as a substring within the concatenated text content of any document).
 
 > Note: Verifying that card description feature names appear in the docs collection is confirmed by editorial review during PR code review. Any PR that modifies card descriptions must be reviewed against the docs collection.
 
@@ -499,6 +499,7 @@ If a card's dedicated docs slug is not present in the collection, the selector e
 **Verification**:
 - [ ] `npm test tests/components/home/HeroSection.test.tsx` passes
 - [ ] Test asserts subhead does not contain `Multi-Agent`, `cognitive workloads`, `operational perimeter`, `hallucination loops`, `feedback loop`, or `logic feedback loop`
+- [ ] Test asserts subhead text contains `init`, `lint`, and `MCP` (the three documented capabilities from the Task 3 requirements)
 - [ ] Test asserts primary CTA `href` equals `/docs/quickstart`; test asserts secondary CTA `href` equals `https://github.com/zpratt/lousy-agents` and no anchor `href` equals `/about`
 - [ ] `npx biome check src/components/home/HeroSection.tsx tests/components/home/HeroSection.test.tsx` passes
 - [ ] Visual verification screenshot attached (desktop + mobile)
@@ -511,7 +512,7 @@ If a card's dedicated docs slug is not present in the collection, the selector e
 
 ### Task 4: Replace `SpecDrivenSection` with `QuickstartFlowSection`
 
-**Depends on**: Task 1
+**Depends on**: Tasks 1, 2
 
 **Objective**: Delete the fabricated three-pillar section and replace it with `QuickstartFlowSection` driven by the documented Quickstart steps.
 
