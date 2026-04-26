@@ -68,11 +68,8 @@ so that I can **drill into the docs to verify each claim before adopting the too
 - [ ] The Agent Shell card shall describe Agent Shell as an audit-trail wrapper around npm's `script-shell` (matching `src/content/local-docs/readme.md`), not a sandboxed runtime.
 - [ ] Each feature card shall include a link to the docs page for that feature.
 - [ ] When a visitor navigates to a feature card's docs link, the built site shall return a 200 response.
-- [ ] While the `quickstart` fallback content slug is present in the docs content collection, if a feature's primary content slug is absent, then the `CoreModulesSection` shall render a card for that feature linking to `/docs/quickstart`.
 - [ ] If no resolvable `docsHref` is produced by the `selectAvailableFeatures` selector for a feature, then the `CoreModulesSection` shall omit that feature.
 - [ ] Feature cards shall not display fabricated version labels (e.g. `v2.0.1 // system.bin`).
-- [ ] While version metadata is displayed on a feature card and real package metadata is available, the feature card shall display the version derived from that package metadata.
-- [ ] While version metadata is displayed on a feature card and real package metadata is unavailable, the feature card shall omit the version display.
 
 ### Story 3: Remove fabricated "Spec-Driven Development" pillars section
 
@@ -391,7 +388,7 @@ If a card's dedicated docs slug is not present in the collection, the selector e
 
 **Done when**:
 - [ ] All verification steps pass
-- [ ] Cards render: `init`, `new`, `lint`, `copilot-setup`, `MCP Server`, and `Agent Shell` when those docs slugs are present in the local docs collection
+- [ ] Cards render: `init`, `new`, `lint`, `copilot-setup`, `MCP Server`, and `Agent Shell` when those docs slugs are present in the `docs` content collection
 - [ ] All card links resolve in the built site
 
 ---
@@ -493,14 +490,14 @@ If a card's dedicated docs slug is not present in the collection, the selector e
 **Objective**: Prevent regressions where homepage code references an internal docs page that does not exist; add e2e coverage that every internal homepage link resolves at runtime.
 
 **Affected files**:
-- `tests/components/home/homepage-link-integrity.test.tsx` *(new — unit test that walks `HomePage` rendered output and asserts each internal anchor `href` (starting with `/`) corresponds to a slug in a fixture content collection or a static page after normalizing the link target by stripping any `#...` fragment, stripping any `?...` query string, and normalizing trailing slashes; external links are excluded from the check)*
-- `tests/e2e/homepage.spec.ts` *(new or extended — Playwright walks each internal homepage link (href starting with `/`), normalizes the target by stripping any `#...` fragment, stripping any `?...` query string, and normalizing trailing slashes before issuing the request, then asserts the underlying internal page returns 200; external links are excluded)*
+- `tests/components/home/homepage-link-integrity.test.tsx` *(new — unit test that walks `HomePage` rendered output and asserts each internal anchor `href` (starting with `/`) corresponds to either a slug in a fixture content collection or a static page after normalizing the link target by stripping any `#...` fragment, stripping any `?...` query string, and normalizing trailing slashes; when the normalized target matches `/docs/<slug>`, translate it to `<slug>` before checking the fixture content collection, while still allowing static routes such as `/docs`; external links are excluded from the check)*
+- `tests/e2e/homepage.spec.ts` *(new or extended — Playwright walks each internal homepage link (href starting with `/`), normalizes the target by stripping any `#...` fragment, stripping any `?...` query string, and normalizing trailing slashes before issuing the request, then asserts the underlying internal page returns 200; `/docs/<slug>` remains a routable URL in e2e and external links are excluded)*
 
 **Requirements**:
 - Implements Story 5 and Story 6.
 - Unit test fails with a message naming the missing slug if an internal card or CTA `href` (starting with `/`) points to an unmapped internal route.
 - Unit test also asserts that each card title or feature term rendered by `CoreModulesSection` appears verbatim in at least one document in the content collection (vocabulary check for Story 6 AC3).
-- Normalize internal homepage link targets before validation by stripping `#...` fragments, stripping `?...` query strings, and normalizing trailing slashes before matching slugs/routes and before issuing e2e requests.
+- Normalize internal homepage link targets before validation by stripping `#...` fragments, stripping `?...` query strings, and normalizing trailing slashes before matching slugs/routes and before issuing e2e requests; when the normalized target matches `/docs/<slug>`, translate it to `<slug>` for the slug-existence check.
 - E2e test runs against the production build (`npm run test:e2e:dist`) so static-only routes are exercised.
 
 **Verification**:
