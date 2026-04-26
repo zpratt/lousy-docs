@@ -82,7 +82,9 @@ so that I can **trust the homepage to reflect the actual product surface**.
 #### Acceptance Criteria
 
 - [ ] The current `SpecDrivenSection` ("Define the Spec / Mock the World / Atomic Deploy") shall be removed from the homepage.
-- [ ] The `QuickstartFlowSection` shall replace `SpecDrivenSection` and render the documented three-step Quickstart flow (`init` → `lint` in CI → MCP Server), with copy paraphrased from `src/content/local-docs/quickstart.md`; step labels and links shall be statically embedded in the component.
+- [ ] The `QuickstartFlowSection` shall replace `SpecDrivenSection` and render the documented three-step Quickstart flow (`init` → `lint` in CI → MCP Server).
+- [ ] The `QuickstartFlowSection` copy shall be paraphrased from `src/content/local-docs/quickstart.md` and shall not introduce undocumented behavior.
+- [ ] The `QuickstartFlowSection` step labels and links shall be statically embedded in the component (not fetched or computed at runtime).
 - [ ] The `QuickstartFlowSection` shall render each of the three steps as a link pointing to `/docs/quickstart`.
 - [ ] The `QuickstartFlowSection` shall include a primary CTA linking to `/docs/quickstart`.
 - [ ] The homepage shall not reference a built-in "mocking engine", "atomic deploy", or "Protocol" compliance enforcement, because none of these are documented features.
@@ -341,7 +343,7 @@ If a card's dedicated docs slug is not present in the collection, the selector e
 
 - [x] **OQ-1 (product):** ~~Should we keep a "workflow narrative" section after deleting `SpecDrivenSection`, or is the documented Quickstart flow already represented well enough by the feature cards alone?~~ **Resolved** — keep `QuickstartFlowSection`. It should tease the documented Quickstart experience in a way that inspires curiosity for visitors interested in tightening their quality checks, iterating with more confidence, and improving the production quality of their agents, with a clear CTA to `/docs/quickstart`.
 - [x] **OQ-2 (product):** ~~Do we want to retain the mascot "Developer Patch" callout card visually but with documented content (e.g. a "Pro tip: run `lint` in CI" pointing to `/docs/quickstart#2-enforce-quality-in-ci-lint`), or remove that visual element entirely?~~ **Resolved** — remove for now; reintroduce only if/when there is a documented tip with a stable anchor.
-- [x] **OQ-3 (engineering):** ~~Should the inventory live in `src/lib/` (used by Astro build) or `src/entities/` (per Clean Architecture rules in `.github/copilot-instructions.md` and `.github/instructions/software-architecture.instructions.md`)?~~ **Resolved** — place schema + types in `src/entities/feature.ts`, place the selector in `src/use-cases/select-available-features.ts`, and keep the seeded inventory data in `src/lib/documented-features.ts`.
+- [x] **OQ-3 (engineering):** ~~Should the inventory live in `src/lib/` (used by Astro build) or `src/entities/` (per Clean Architecture rules in `.github/copilot-instructions.md` and `.github/instructions/software-architecture.instructions.md`)?~~ **Resolved** — place schema + types in `src/entities/feature.ts`, place the selector in `src/use-cases/select-available-features.ts`, and keep the seeded inventory data in `src/lib/documented-features.ts`. **Architectural note**: Zod is used in `src/entities/feature.ts` to define schemas alongside their inferred TypeScript types (a Zod-first type pattern). This is a deliberate deviation from the "no framework imports in entities" guideline, justified because (1) the project mandates Zod for all runtime validation, (2) Zod generates the TypeScript types — separating them would require maintaining two parallel definitions — and (3) no runtime infrastructure is involved. Downstream layers import the inferred types only (`z.infer<typeof ...>`), preserving the inward dependency rule.
 - [x] **OQ-4 (content):** ~~When upstream `docs/init.md`, `docs/lint.md`, `docs/mcp-server.md`, `docs/copilot-setup.md`, and `docs/new.md` are fetched into `src/content/docs/`, should each card's `docsHref` switch from `/docs/quickstart` to the per-command page automatically?~~ **Resolved** — the inventory now stores `primaryDocsHref`/`primaryContentSlug` and optional `fallbackDocsHref`/`fallbackContentSlug` separately, and the selector resolves the final `docsHref` based on content availability.
 
 ---
@@ -362,7 +364,8 @@ If a card's dedicated docs slug is not present in the collection, the selector e
 - `src/entities/feature.ts` *(new — inventory-item schema/type plus resolved-feature schema/type)*
 - `src/use-cases/select-available-features.ts` *(new — pure selector)*
 - `src/lib/documented-features.ts` *(new — seeded inventory data)*
-- `tests/fixtures/docs-slugs.json` *(new — fixture listing known docs slugs; see Test Data Strategy in Design)*
+- `package.json` *(add `"fixture:docs-slugs"` script that performs a minimal Astro build and writes `getCollection("docs").map(e => e.slug)` as JSON to `tests/fixtures/docs-slugs.json`)*
+- `tests/fixtures/docs-slugs.json` *(new — fixture listing known docs slugs; generated by `npm run fixture:docs-slugs`; see Test Data Strategy in Design)*
 - `tests/use-cases/select-available-features.test.ts` *(new)*
 - `tests/lib/documented-features.test.ts` *(new — schema and inventory shape; imports `tests/fixtures/docs-slugs.json` to assert all configured slugs are known)*
 
@@ -373,8 +376,10 @@ If a card's dedicated docs slug is not present in the collection, the selector e
 - Selector links to `primaryDocsHref` when the dedicated docs slug is present, falls back only to `/docs/quickstart` when both `fallbackDocsHref` and `fallbackContentSlug` are configured and the `quickstart` slug is present, and omits features with no resolvable docs route.
 - Inventory seeds entries for all six documented features: `init`, `new`, `lint`, `copilot-setup`, `mcp-server`, and `agent-shell`.
 - Tests follow the AAA pattern, use Chance.js for fixtures, and never mock fetch directly (no HTTP in this module).
+- Add `"fixture:docs-slugs"` script to `package.json` that performs a minimal Astro build and writes the docs slug array to `tests/fixtures/docs-slugs.json`; commit the generated fixture file to source control.
 
 **Verification**:
+- [ ] `npm run fixture:docs-slugs` runs without error and writes `tests/fixtures/docs-slugs.json`
 - [ ] `npm test tests/use-cases/select-available-features.test.ts` passes
 - [ ] `npm test tests/lib/documented-features.test.ts` passes
 - [ ] `npx biome check src/entities/feature.ts src/use-cases/select-available-features.ts src/lib/documented-features.ts tests/use-cases/select-available-features.test.ts tests/lib/documented-features.test.ts` passes
@@ -445,8 +450,7 @@ If a card's dedicated docs slug is not present in the collection, the selector e
 **Verification**:
 - [ ] `npm test tests/components/home/HeroSection.test.tsx` passes
 - [ ] Test asserts subhead does not contain `Multi-Agent` or `cognitive workloads`
-- [ ] Test asserts every internal CTA `href` (starting with `/`), after applying the standard link-normalization algorithm (defined in Story 5), resolves to a slug in the docs collection or a static page in `src/pages`; external CTAs (e.g. the GitHub repository URL) are excluded from this assertion
-- [ ] Test asserts secondary CTA `href` equals `https://github.com/zpratt/lousy-agents` and no anchor `href` equals `/about`
+- [ ] Test asserts primary CTA `href` equals `/docs/quickstart`; test asserts secondary CTA `href` equals `https://github.com/zpratt/lousy-agents` and no anchor `href` equals `/about`
 - [ ] `npx biome check src/components/home/HeroSection.tsx tests/components/home/HeroSection.test.tsx` passes
 - [ ] Visual verification screenshot attached (desktop + mobile)
 
