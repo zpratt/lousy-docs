@@ -60,7 +60,7 @@ so that I can **drill into the docs to verify each claim before adopting the too
 #### Acceptance Criteria
 
 - [ ] While a feature's primary content slug is present in the docs content collection, the `CoreModulesSection` shall render exactly one card for that feature linking to `primaryDocsHref`, drawn from the Documented Feature Inventory table.
-- [ ] If a feature's primary content slug is absent from the docs content collection, and that feature's inventory entry has a fallback configured (`fallbackDocsHref` is `/docs/quickstart` and `fallbackContentSlug` is `quickstart`), and the `quickstart` slug is present in the docs content collection, then the `CoreModulesSection` shall render exactly one card linking to `/docs/quickstart`.
+- [ ] If a feature's primary content slug is absent from the docs content collection, and that feature's inventory entry has a fallback configured (both `fallbackDocsHref` and `fallbackContentSlug` are set), and the configured fallback content slug is present in the docs content collection, then the `CoreModulesSection` shall render exactly one card linking to `fallbackDocsHref`.
 - [ ] Each feature card shall use the documented feature's name (e.g. `init`, `lint`, `MCP Server`, `Agent Shell`) rather than invented module names (`CLI Engine`, `Smart Linting`).
 - [ ] Each feature card description shall paraphrase language from the corresponding docs page.
 - [ ] The homepage shall not introduce in a feature card description any capability not present in that card's corresponding docs page.
@@ -104,6 +104,8 @@ so that I do **not encounter dead ends**.
 
 #### Acceptance Criteria
 
+> **Definition**: An **inventory-backed feature link** is any anchor `href` rendered by `CoreModulesSection` whose target is drawn from the Documented Feature Inventory table above.
+
 - [ ] The `HomePage` component shall render an internal link (an `href` starting with `/`) only when its normalized path target — derived by stripping any `#...` fragment, stripping any `?...` query string, and stripping any trailing slash (except for the root path `/`, which is treated as-is), then translating a `/docs/<slug>` pattern (where `<slug>` is a single path segment containing no `/` characters, anchored at end-of-path (`^/docs/([^/]+)$`)) to `<slug>` for slug-existence checks while treating `/docs` itself as a valid static route — corresponds to an entry in the docs content collection or a static page in `src/pages`.
 - [ ] If no fallback is configured in the inventory for an inventory-backed feature link, and that feature's primary content slug is absent from the docs collection, then the `HomePage` component shall omit that feature link.
 - [ ] If a fallback is configured in the inventory for an inventory-backed feature link, and that feature's primary content slug is absent from the docs collection, then the `HomePage` component shall render the link pointing to `fallbackDocsHref`.
@@ -121,6 +123,7 @@ so that I can **search the docs for any term I see on the homepage and find a ma
 - [ ] The homepage shall not introduce coined terms ("cognitive workloads", "operational perimeter", "hallucination loops", "feedback loop", "logic feedback loop") that are not present in the docs content collection.
 - [ ] When the homepage names a capability, the homepage shall use the same term as the corresponding docs page heading (e.g. `lint`, not `Smart Linting`).
 - [ ] The `CoreModulesSection` shall not render a card title that is absent from every document in the docs content collection.
+- [ ] The `CoreModulesSection` shall not render a card description containing a feature name that is absent from every document in the docs content collection.
 
 ---
 
