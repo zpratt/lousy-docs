@@ -48,7 +48,8 @@ so that I can **decide in under 10 seconds whether to read further**.
 - [ ] When the hero subhead references a capability, the homepage shall link to a docs page that documents that capability.
 - [ ] If a capability mentioned in the hero is not documented, then the homepage shall not reference it.
 - [ ] The terminal mock in the hero shall display only commands that exist in the documented CLI surface (e.g. `npx @lousy-agents/cli@latest init`).
-- [ ] The hero shall not display a hardcoded version string for the CLI (e.g. `agent_v2.0.1`); if a version label is shown it shall use a neutral placeholder such as `cli` or `lousy-agents`.
+- [ ] The hero shall not display a hardcoded version string for the CLI (e.g. `agent_v2.0.1`).
+- [ ] If a version label is shown, then the hero shall use a neutral placeholder such as `cli` or `lousy-agents`.
 
 ### Story 2: Feature cards reflect only documented features
 
@@ -58,12 +59,13 @@ so that I can **drill into the docs to verify each claim before adopting the too
 
 #### Acceptance Criteria
 
-- [ ] The features section shall render exactly one card per documented feature listed in the Documented Feature Inventory table when that feature's primary docs slug or explicitly allowed fallback docs slug is present in the docs collection.
+- [ ] Where a feature's primary docs slug or explicitly allowed fallback docs slug is present in the docs content collection, the features section shall render exactly one card for that feature, drawn from the Documented Feature Inventory table.
 - [ ] Each feature card shall use the documented feature's name (e.g. `init`, `lint`, `MCP Server`, `Agent Shell`) rather than invented module names (`CLI Engine`, `Smart Linting`).
 - [ ] Each feature card description shall paraphrase language from the corresponding docs page and shall not introduce capabilities not described in that page.
 - [ ] The MCP Server card shall expand `MCP` as `Model Context Protocol`, not `Multi-Agent Control Protocol`.
 - [ ] The Agent Shell card shall describe it as an audit-trail wrapper around npm's `script-shell` (matching `src/content/local-docs/readme.md`), not a sandboxed runtime.
-- [ ] Each feature card shall include a link to the docs page for that feature; the link shall resolve to a 200 page in the built site.
+- [ ] Each feature card shall include a link to the docs page for that feature.
+- [ ] When a visitor navigates to a feature card's docs link, the built site shall return a 200 response.
 - [ ] If a feature's dedicated docs page is not yet present in the local content collection, then the feature shall link to an explicitly allowed `/docs/quickstart` fallback whose `quickstart` slug is present or be omitted from the homepage rather than linking to a 404.
 - [ ] Feature cards shall not display fabricated version labels (e.g. `v2.0.1 // system.bin`); version metadata, if shown, shall be derived from real package metadata or omitted.
 
@@ -114,7 +116,7 @@ so that I can **search the docs for any term I see on the homepage and find a ma
 
 - [ ] The homepage shall not introduce coined terms ("cognitive workloads", "operational perimeter", "hallucination loops", "feedback loop", "logic feedback loop") that are not present in the docs content collection.
 - [ ] Where the homepage names a capability, it shall use the same term as the corresponding docs page heading (e.g. `lint`, not `Smart Linting`).
-- [ ] Where shipped, the homepage shall pass a documentation-vocabulary check (Task 6) that fails the build if a card title or feature term is not found in the docs content collection.
+- [ ] The homepage shall not render a card title or feature term that is absent from every document in the docs content collection.
 
 ---
 
@@ -151,7 +153,7 @@ A new typed feature entity describes the homepage feature inventory and its docs
 
 ```ts
 // src/entities/feature.ts
-import { z } from 'zod';
+import { z } from "zod";
 
 // Base object schema — used as the source for both the inventory and resolved schemas.
 // Kept as a plain z.object() so that .omit()/.extend() work correctly (ZodEffects
@@ -162,8 +164,8 @@ const HomepageFeatureInventoryItemBaseSchema = z.object({
     summary: z.string(),               // 1–2 sentence paraphrase of the docs page
     primaryDocsHref: z.string(),       // preferred dedicated route, e.g. '/docs/lint'
     primaryContentSlug: z.string(),    // slug that must exist for primaryDocsHref
-    fallbackDocsHref: z.literal('/docs/quickstart').optional(),
-    fallbackContentSlug: z.literal('quickstart').optional(),
+    fallbackDocsHref: z.literal("/docs/quickstart").optional(),
+    fallbackContentSlug: z.literal("quickstart").optional(),
 });
 
 // Inventory schema — adds cross-field validation that fallback href and slug
@@ -177,7 +179,7 @@ export const HomepageFeatureInventoryItemSchema =
                 (feature.fallbackDocsHref !== undefined &&
                     feature.fallbackContentSlug === undefined)
             ),
-        { message: 'Fallback href and content slug must be configured together' },
+        { message: "Fallback href and content slug must be configured together" },
     );
 
 // Resolved schema — derived from the base (not the refined) schema so .omit() works.
@@ -483,12 +485,14 @@ If a card's dedicated docs slug is not present in the collection, the selector e
 **Objective**: Prevent regressions where homepage code references an internal docs page that does not exist; add e2e coverage that every internal homepage link resolves at runtime.
 
 **Affected files**:
-- `tests/components/home/homepage-link-integrity.test.tsx` *(new — unit test that walks `HomePage` rendered output and asserts each internal anchor `href` (starting with `/`) corresponds to a slug in a fixture content collection or a static page; external links are excluded from the check)*
-- `tests/e2e/homepage.spec.ts` *(new or extended — Playwright walks each internal homepage link (href starting with `/`) and asserts 200; external links are excluded)*
+- `tests/components/home/homepage-link-integrity.test.tsx` *(new — unit test that walks `HomePage` rendered output and asserts each internal anchor `href` (starting with `/`) corresponds to a slug in a fixture content collection or a static page after normalizing the link target by stripping any `#...` fragment, stripping any `?...` query string, and normalizing trailing slashes; external links are excluded from the check)*
+- `tests/e2e/homepage.spec.ts` *(new or extended — Playwright walks each internal homepage link (href starting with `/`), normalizes the target by stripping any `#...` fragment, stripping any `?...` query string, and normalizing trailing slashes before issuing the request, then asserts the underlying internal page returns 200; external links are excluded)*
 
 **Requirements**:
 - Implements Story 5 and Story 6.
 - Unit test fails with a message naming the missing slug if an internal card or CTA `href` (starting with `/`) points to an unmapped internal route.
+- Unit test also asserts that each card title or feature term rendered by `CoreModulesSection` appears verbatim in at least one document in the content collection (vocabulary check for Story 6 AC3).
+- Normalize internal homepage link targets before validation by stripping `#...` fragments, stripping `?...` query strings, and normalizing trailing slashes before matching slugs/routes and before issuing e2e requests.
 - E2e test runs against the production build (`npm run test:e2e:dist`) so static-only routes are exercised.
 
 **Verification**:
