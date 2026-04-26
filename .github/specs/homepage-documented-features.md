@@ -45,7 +45,9 @@ so that I can **decide in under 10 seconds whether to read further**.
 #### Acceptance Criteria
 
 - [ ] The `HeroSection` shall describe Lousy Agents as a CLI that scaffolds, validates, and connects AI agent configurations through documented commands.
-- [ ] When the `HeroSection` subhead references a capability, the `HeroSection` shall render a link to a docs page that documents that capability.
+- [ ] The `HeroSection` subhead shall describe scaffolding (`init`), CI validation (`lint`), and editor integration via the MCP server using vocabulary drawn from `src/content/local-docs/quickstart.md`.
+
+> Note: Verifying that all subhead vocabulary matches the docs is confirmed by editorial review during PR code review. Any PR that modifies `HeroSection` copy must be reviewed against `src/content/local-docs/quickstart.md`.
 - [ ] If a capability mentioned in the `HeroSection` is not documented, then the `HeroSection` shall not reference that capability.
 - [ ] The `HeroSection` terminal mock shall display only commands that exist in the documented CLI surface (e.g. `npx @lousy-agents/cli@latest init`).
 - [ ] The `HeroSection` shall render a primary CTA whose `href` is `/docs/quickstart`.
@@ -62,9 +64,9 @@ so that I can **drill into the docs to verify each claim before adopting the too
 
 #### Acceptance Criteria
 
-- [ ] While a feature's primary content slug is present in the docs content collection, the `selectAvailableFeatures` selector shall resolve that feature's `docsHref` to `primaryDocsHref`.
+- [ ] When `selectAvailableFeatures` is called with an `availableSlugs` array that contains a feature's `primaryContentSlug`, the selector shall resolve that feature's `docsHref` to `primaryDocsHref`.
 - [ ] While `resolvedFeatures` contains an entry for a feature, the `CoreModulesSection` shall render exactly one card for that feature using the supplied `docsHref`.
-- [ ] While a feature's primary content slug is absent from the docs content collection, and that feature's inventory entry has a fallback configured (both `fallbackDocsHref` and `fallbackContentSlug` are set), and the configured fallback content slug is present in the docs content collection, the `selectAvailableFeatures` selector shall resolve that feature's `docsHref` to `fallbackDocsHref`.
+- [ ] When `selectAvailableFeatures` is called with an `availableSlugs` array where a feature's `primaryContentSlug` is absent, and that feature's inventory entry has a fallback configured (both `fallbackDocsHref` and `fallbackContentSlug` are set), and the configured fallback content slug is present in `availableSlugs`, the selector shall resolve that feature's `docsHref` to `fallbackDocsHref`.
 - [ ] The `CoreModulesSection` shall render each card with the documented feature name (e.g. `init`, `lint`, `MCP Server`, `Agent Shell`) rather than invented module names (`CLI Engine`, `Smart Linting`).
 - [ ] The `CoreModulesSection` shall not render any card description containing a coined term ("cognitive workloads", "operational perimeter", "hallucination loops", "feedback loop", "logic feedback loop").
 - [ ] The `CoreModulesSection` shall not render any card description that introduces a capability not present in that card's corresponding docs page.
@@ -90,11 +92,13 @@ so that I can **trust the homepage to reflect the actual product surface**.
 - [ ] The `QuickstartFlowSection` shall render exactly three steps with labels `init`, `lint` (in CI), and `MCP Server`.
 - [ ] The `QuickstartFlowSection` copy shall be paraphrased from `src/content/local-docs/quickstart.md`.
 - [ ] The `QuickstartFlowSection` shall not render any text that describes behavior absent from `src/content/local-docs/quickstart.md`.
+
+> Note: Verifying that `QuickstartFlowSection` copy stays within the documented scope is confirmed by editorial review during PR code review. Any PR that modifies `QuickstartFlowSection` copy must be reviewed against `src/content/local-docs/quickstart.md`.
 - [ ] The `QuickstartFlowSection` step labels and links shall be statically embedded in the component (not fetched or computed at runtime).
 - [ ] The `QuickstartFlowSection` shall render each of the three steps as a link pointing to `/docs/quickstart`.
 - [ ] The `QuickstartFlowSection` shall include a primary CTA linking to `/docs/quickstart`.
 - [ ] Each `QuickstartFlowSection` step link shall carry an `aria-label` that is unique across all three step links.
-- [ ] Each `QuickstartFlowSection` step link's `aria-label` shall include the step's label (e.g. `aria-label="Learn about init"`).
+- [ ] Each `QuickstartFlowSection` step link's `aria-label` shall include the step's full label (e.g. `aria-label="Learn about init"`, `aria-label="Learn about lint (in CI)"`, `aria-label="Learn about MCP Server"`).
 - [ ] The homepage shall not reference a built-in "mocking engine".
 - [ ] The homepage shall not reference "atomic deploy".
 - [ ] The homepage shall not reference "Protocol" compliance enforcement.
@@ -135,7 +139,7 @@ so that I do **not encounter dead ends**.
 - [ ] If an internal homepage link's normalized path target — computed using the standard link-normalization algorithm — does not correspond to an entry in the docs content collection or a static page in `src/pages/`, then the rendered homepage shall not include that link.
 - [ ] If no fallback is configured in the inventory for an inventory-backed feature link, and that feature's primary content slug is absent from the docs collection, then the `selectAvailableFeatures` selector shall not emit that feature in its output.
 - [ ] If a fallback is configured in the inventory for an inventory-backed feature link, and that feature's primary content slug is absent from the docs collection, and the configured fallback content slug is present in the docs collection, then the `selectAvailableFeatures` selector shall resolve that feature's `docsHref` to `fallbackDocsHref`.
-- [ ] If a homepage link's `href` does not start with `/`, then the `HomePage` component shall not subject that link to internal docs-page matching.
+- [ ] If a homepage link's `href` does not start with `/`, then the `homepage-link-integrity` unit test shall not validate that link against the internal docs-page matching requirement.
 
 ### Story 6: Homepage copy is grounded in documentation, not jargon
 
@@ -148,7 +152,11 @@ so that I can **search the docs for any term I see on the homepage and find a ma
 - [ ] The homepage shall not introduce coined terms ("cognitive workloads", "operational perimeter", "hallucination loops", "feedback loop", "logic feedback loop") that are not present in the docs content collection.
 - [ ] The `CoreModulesSection` shall use the same term as the `h1` heading of each feature's corresponding docs page as that feature's card title (e.g. `lint`, not `Smart Linting`).
 - [ ] The `CoreModulesSection` shall not render a card title that is absent from every document in the docs content collection (matching is case-insensitive; a title is considered present if it appears as a substring within the concatenated text content of any document).
+
+> Note: Verifying that card titles appear in the docs collection is confirmed by editorial review during PR code review. Any PR that modifies card titles must be reviewed against the docs collection.
 - [ ] The `CoreModulesSection` shall not render a card description containing a feature name that is absent from every document in the docs content collection (matching is case-insensitive; a feature name is considered present if it appears as a substring within the concatenated text content of any document).
+
+> Note: Verifying that card description feature names appear in the docs collection is confirmed by editorial review during PR code review. Any PR that modifies card descriptions must be reviewed against the docs collection.
 
 ---
 
@@ -380,7 +388,7 @@ If a card's dedicated docs slug is not present in the collection, the selector e
 
 - [x] **OQ-1 (product):** ~~Should we keep a "workflow narrative" section after deleting `SpecDrivenSection`, or is the documented Quickstart flow already represented well enough by the feature cards alone?~~ **Resolved** — keep `QuickstartFlowSection`. It should tease the documented Quickstart experience in a way that inspires curiosity for visitors interested in tightening their quality checks, iterating with more confidence, and improving the production quality of their agents, with a clear CTA to `/docs/quickstart`.
 - [x] **OQ-2 (product):** ~~Do we want to retain the mascot "Developer Patch" callout card visually but with documented content (e.g. a "Pro tip: run `lint` in CI" pointing to `/docs/quickstart#2-enforce-quality-in-ci-lint`), or remove that visual element entirely?~~ **Resolved** — remove for now; reintroduce only if/when there is a documented tip with a stable anchor.
-- [x] **OQ-3 (engineering):** ~~Should the inventory live in `src/lib/` (used by Astro build) or `src/entities/` (per Clean Architecture rules in `.github/copilot-instructions.md` and `.github/instructions/software-architecture.instructions.md`)?~~ **Resolved** — place schema + types in `src/entities/feature.ts`, place the selector in `src/use-cases/select-available-features.ts`, and keep the seeded inventory data in `src/lib/documented-features.ts`. **Architectural note**: Zod is used in `src/entities/feature.ts` to define schemas alongside their inferred TypeScript types (a Zod-first type pattern). This is a deliberate deviation from the "no framework imports in entities" guideline, justified because (1) the project mandates Zod for all runtime validation, (2) Zod generates the TypeScript types — separating them would require maintaining two parallel definitions — and (3) no runtime infrastructure is involved. Downstream layers import the inferred types only (`z.infer<typeof ...>`), preserving the inward dependency rule.
+- [x] **OQ-3 (engineering):** ~~Should the inventory live in `src/lib/` (used by Astro build) or `src/entities/` (per Clean Architecture rules in `.github/copilot-instructions.md` and `.github/instructions/software-architecture.instructions.md`)?~~ **Resolved** — place schema + types in `src/entities/feature.ts`, place the selector in `src/use-cases/select-available-features.ts`, and keep the seeded inventory data in `src/lib/documented-features.ts`. **Architectural note**: Zod is used in both `src/entities/feature.ts` and `src/use-cases/select-available-features.ts` to define schemas alongside their inferred TypeScript types (a Zod-first type pattern). This is a deliberate deviation from the "no framework imports in entities/use-cases" guideline, justified because (1) the project mandates Zod for all runtime validation, (2) Zod generates the TypeScript types — separating them would require maintaining two parallel definitions — and (3) no runtime infrastructure is involved. The same justification applies to Layer 2 use-cases as to Layer 1 entities: Zod's schema-as-type-source pattern avoids DTO drift, and the use-case layer owns its output DTO schema (`ResolvedHomepageFeatureSchema`). Downstream layers import the inferred types only (`z.infer<typeof ...>`), preserving the inward dependency rule.
 - [x] **OQ-4 (content):** ~~When upstream `docs/init.md`, `docs/lint.md`, `docs/mcp-server.md`, `docs/copilot-setup.md`, and `docs/new.md` are fetched into `src/content/docs/`, should each card's `docsHref` switch from `/docs/quickstart` to the per-command page automatically?~~ **Resolved** — the inventory now stores `primaryDocsHref`/`primaryContentSlug` and optional `fallbackDocsHref`/`fallbackContentSlug` separately, and the selector resolves the final `docsHref` based on content availability.
 
 ---
@@ -459,7 +467,7 @@ If a card's dedicated docs slug is not present in the collection, the selector e
 - [ ] Test asserts MCP expansion text appears in DOM
 - [ ] Test asserts no `/^v\d+\.\d+\.\d+/` strings appear in any rendered card
 - [ ] Test asserts no card title contains banned terms (`CLI Engine`, `Smart Linting`, `Multi-Agent`)
-- [ ] Test asserts the accent color map in `CoreModulesSection.tsx` contains entries for `init`, `new`, `lint`, `copilot-setup`, `mcp-server`, and `agent-shell`
+- [ ] Test asserts that rendering `CoreModulesSection` with `resolvedFeatures` containing all six feature IDs results in each card having a non-empty, distinct accent color value (via inline `style` prop or CSS class name unique per feature ID)
 - [ ] `npx biome check src/components/home/CoreModulesSection.tsx tests/components/home/CoreModulesSection.test.tsx` passes
 - [ ] Visual verification per `.github/instructions/visual-verification.instructions.md` (screenshot of cards on desktop and mobile breakpoints attached to PR)
 
@@ -518,14 +526,14 @@ If a card's dedicated docs slug is not present in the collection, the selector e
 **Requirements**:
 - Implements Story 3.
 - `QuickstartFlowSection` renders exactly three steps named `init`, `lint` (in CI), and `MCP Server`, each linking to `/docs/quickstart` (anchor-level linking is out of scope; the base URL is sufficient and fragment validation is excluded by the standard link-normalization algorithm).
-- Each step link carries an `aria-label` that is unique across the three steps and includes the step name (e.g. `aria-label="Learn about init"`), satisfying WCAG 2.1 AA SC 2.4.4 for three adjacent anchors pointing to the same URL.
+- Each step link carries an `aria-label` that is unique across the three steps and includes the step's full label (e.g. `aria-label="Learn about init"`, `aria-label="Learn about lint (in CI)"`, `aria-label="Learn about MCP Server"`), satisfying WCAG 2.1 AA SC 2.4.4 for three adjacent anchors pointing to the same URL.
 - Section copy is paraphrased from `src/content/local-docs/quickstart.md` and shall not introduce undocumented behavior.
 - Primary CTA at the bottom of the section links to `/docs/quickstart`.
 
 **Verification**:
 - [ ] `npm test tests/components/home/QuickstartFlowSection.test.tsx` passes
 - [ ] Test asserts each of the three step elements renders an anchor whose `href` equals `/docs/quickstart`
-- [ ] Test asserts each step anchor has a distinct `aria-label` that contains the step name (`init`, `lint`, `MCP Server` respectively)
+- [ ] Test asserts each step anchor has a distinct `aria-label` that contains the step's full label (`"Learn about init"`, `"Learn about lint (in CI)"`, `"Learn about MCP Server"` respectively)
 - [ ] `tests/components/home/SpecDrivenSection.test.tsx` no longer exists
 - [ ] `npm test tests/components/home/HomePage.test.tsx` passes — asserts `SpecDrivenSection` is not rendered
 - [ ] `npx biome check` passes for all touched files
@@ -579,8 +587,7 @@ If a card's dedicated docs slug is not present in the collection, the selector e
 - Implements Story 5 and Story 6.
 - Unit test fails with a message naming the missing slug if an internal card or CTA `href` (starting with `/`) points to an unmapped internal route.
 - The unit test shall render `HomePage` with `resolvedFeatures` produced by calling `selectAvailableFeatures(inventory, docsSlugs)` where `docsSlugs` is imported from `tests/fixtures/docs-slugs.json`, so that all inventory-backed anchors present in the fixture are exercised.
-- Unit test also asserts that each card title rendered by `CoreModulesSection` appears verbatim in at least one document in the content collection (vocabulary check for Story 6 AC3).
-- Unit test also asserts that no card description rendered by `CoreModulesSection` contains any banned coined term from Story 6 AC1 ("cognitive workloads", "operational perimeter", "hallucination loops", "feedback loop", "logic feedback loop") (vocabulary check for Story 6 AC4).
+- Unit test also asserts that no card description rendered by `CoreModulesSection` contains any banned coined term from Story 6 AC1 ("cognitive workloads", "operational perimeter", "hallucination loops", "feedback loop", "logic feedback loop") (vocabulary check for Story 2 AC5).
 - In the unit test, apply all steps of the standard link-normalization algorithm (including step 6 slug translation) before checking slug existence in the fixture. In the e2e spec, apply steps 0–5 only (lowercase, strip fragment, strip query string, decode percent-encoding, collapse consecutive slashes, strip trailing slash) before issuing the Playwright request; step 6 (slug translation) is inapplicable in e2e because the test issues a real HTTP request to the full routable path (`/docs/lint`, not `lint`).
 - E2e test runs against the production build (`npm run test:e2e:dist`) so static-only routes are exercised.
 
