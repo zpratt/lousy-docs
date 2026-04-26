@@ -50,7 +50,8 @@ so that I can **decide in under 10 seconds whether to read further**.
 - [ ] The terminal mock in the hero shall display only commands that exist in the documented CLI surface (e.g. `npx @lousy-agents/cli@latest init`).
 - [ ] The `HeroSection` shall render a secondary CTA whose `href` is `https://github.com/zpratt/lousy-agents`.
 - [ ] The `HeroSection` shall not render any anchor whose `href` is `/about`.
-- [ ] The hero shall not display a hardcoded version string for the CLI (e.g. `agent_v2.0.1`). If a window-title or label is shown, it shall use a neutral placeholder such as `cli` or `lousy-agents`.
+- [ ] The hero shall not display a hardcoded version string matching `/v\d+\.\d+\.\d+/` (e.g. `agent_v2.0.1`).
+- [ ] If a window-title or label is rendered in the hero, then its text content shall match one of the enumerated neutral placeholders: `cli`, `lousy-agents`, or `shell — lousy-agents`.
 
 ### Story 2: Feature cards reflect only documented features
 
@@ -60,8 +61,9 @@ so that I can **drill into the docs to verify each claim before adopting the too
 
 #### Acceptance Criteria
 
-- [ ] While a feature's primary content slug is present in the docs content collection, the `selectAvailableFeatures` selector shall resolve that feature's `docsHref` to `primaryDocsHref`, and the `CoreModulesSection` shall render exactly one card for that feature using the resolved href.
-- [ ] If a feature's primary content slug is absent from the docs content collection, and that feature's inventory entry has a fallback configured (both `fallbackDocsHref` and `fallbackContentSlug` are set), and the configured fallback content slug is present in the docs content collection, then the `selectAvailableFeatures` selector shall resolve that feature's `docsHref` to `fallbackDocsHref`, and the `CoreModulesSection` shall render exactly one card for that feature using the resolved href.
+- [ ] While a feature's primary content slug is present in the docs content collection, the `selectAvailableFeatures` selector shall resolve that feature's `docsHref` to `primaryDocsHref`.
+- [ ] While `resolvedFeatures` contains an entry for a feature, the `CoreModulesSection` shall render exactly one card for that feature using the supplied `docsHref`.
+- [ ] If a feature's primary content slug is absent from the docs content collection, and that feature's inventory entry has a fallback configured (both `fallbackDocsHref` and `fallbackContentSlug` are set), and the configured fallback content slug is present in the docs content collection, then the `selectAvailableFeatures` selector shall resolve that feature's `docsHref` to `fallbackDocsHref`.
 - [ ] Each feature card shall use the documented feature's name (e.g. `init`, `lint`, `MCP Server`, `Agent Shell`) rather than invented module names (`CLI Engine`, `Smart Linting`).
 - [ ] Each feature card description shall not contain any coined term from the banned list in Story 6 AC1 ("cognitive workloads", "operational perimeter", "hallucination loops", "feedback loop", "logic feedback loop").
 - [ ] The homepage shall not introduce in a feature card description any capability not present in that card's corresponding docs page.
@@ -115,11 +117,11 @@ so that I do **not encounter dead ends**.
 >
 > **Standard link-normalization algorithm**: given an internal `href` (starting with `/`), produce a canonical path by:
 > 0. Lowercase the entire path.
-> 1. Decode any percent-encoded characters (e.g. `%2D` → `-`) using `decodeURIComponent`.
-> 2. Collapse any consecutive `/` separators to a single `/`.
-> 3. Stripping any `#...` fragment.
-> 4. Stripping any `?...` query string.
-> 5. Stripping any trailing slash — except the root path `/`, which is kept as-is.
+> 1. Strip any `#...` fragment (everything from the first `#` onwards).
+> 2. Strip any `?...` query string (everything from the first `?` onwards).
+> 3. Decode any percent-encoded characters (e.g. `%2D` → `-`) using `decodeURIComponent`.
+> 4. Collapse any consecutive `/` separators to a single `/`.
+> 5. Strip any trailing slash — except the root path `/`, which is kept as-is.
 > 6. If the result matches `/docs/<slug>` (where `<slug>` is a single path segment, no `/` characters, anchored by `^/docs/([^/]+)$`), translate it to `<slug>` for slug-existence checks; `/docs` itself is treated as a valid static route without translation.
 
 #### Acceptance Criteria
@@ -127,8 +129,8 @@ so that I do **not encounter dead ends**.
 - [ ] If an internal homepage link's normalized path target — computed using the standard link-normalization algorithm — does not correspond to an entry in the docs content collection or a static page in `src/pages/`, then the `HomePage` component shall not render that link.
 - [ ] If no fallback is configured in the inventory for an inventory-backed feature link, and that feature's primary content slug is absent from the docs collection, then the `HomePage` component shall omit that feature link.
 - [ ] If a fallback is configured in the inventory for an inventory-backed feature link, and that feature's primary content slug is absent from the docs collection, then the `HomePage` component shall render the link pointing to `fallbackDocsHref`.
-- [ ] If a homepage link's `href` does not start with `/`, then the homepage link-integrity validation shall exclude that link from the internal docs-page matching requirement.
-- [ ] If an internal homepage `href`'s normalized path target — computed using the standard link-normalization algorithm — does not resolve to a valid internal route (a docs-collection slug or a `src/pages` entry), then the homepage link-integrity unit test shall fail with a message identifying the unresolved `href`.
+- [ ] If a homepage link's `href` does not start with `/`, then the `HomePage` component shall not subject that link to internal docs-page matching.
+- [ ] If an internal homepage `href`'s normalized path target — computed using the standard link-normalization algorithm — does not resolve to a valid internal route (a docs-collection slug or a `src/pages` entry), then the `HomePage` component shall not render that anchor.
 
 ### Story 6: Homepage copy is grounded in documentation, not jargon
 
@@ -181,7 +183,7 @@ Unit tests that need to check whether a docs slug exists (Tasks 1 and 6) cannot 
 
 - `tests/fixtures/docs-slugs.json` *(new — a JSON array of strings, e.g. `["quickstart", "agent-shell", "readme"]`, representing the `.md` filenames present in `src/content/docs/` with the extension stripped)*
 
-This fixture is regenerated by running `npm run fixture:docs-slugs`, which is a Node.js script that calls `fs.readdirSync('src/content/docs')`, filters for `.md` files, strips the extension, and writes the array as JSON to `tests/fixtures/docs-slugs.json`. **No Astro build is required.** The fixture is committed to source control so unit tests run offline without triggering any build step.
+This fixture is regenerated by running `npm run fixture:docs-slugs`, which is a Node.js script that resolves `src/content/docs/` relative to the project root using `path.join(__dirname, '../src/content/docs')` (CJS) or `path.join(new URL('.', import.meta.url).pathname, '../src/content/docs')` (ESM), calls `fs.readdirSync` on that anchored path, filters for `.md` files, strips the extension, and writes the array as JSON to `tests/fixtures/docs-slugs.json`. The script must call `process.exit(1)` with an error message if the resolved directory does not exist. **No Astro build is required.** The fixture is committed to source control so unit tests run offline without triggering any build step.
 
 Unit tests that check slug existence import this fixture directly:
 
@@ -383,7 +385,7 @@ If a card's dedicated docs slug is not present in the collection, the selector e
 - `src/entities/feature.ts` *(new — inventory-item schema/type only: `HomepageFeatureInventoryItemSchema`, `HomepageFeatureInventoryItem`)*
 - `src/use-cases/select-available-features.ts` *(new — pure selector plus `ResolvedHomepageFeatureSchema` and `ResolvedHomepageFeature` output DTO)*
 - `src/lib/documented-features.ts` *(new — seeded inventory array, validated with uniqueness check)*
-- `package.json` *(add `"fixture:docs-slugs"` script that reads `src/content/docs/` with `fs.readdirSync`, strips `.md` extensions, and writes the resulting slug array as JSON to `tests/fixtures/docs-slugs.json` — no Astro build required)*
+- `package.json` *(add `"fixture:docs-slugs"` script that reads `src/content/docs/` using a path anchored to the project root — `path.join(__dirname, '../src/content/docs')` or equivalent — strips `.md` extensions, and writes the resulting slug array as JSON to `tests/fixtures/docs-slugs.json`; the script must exit with code 1 if the directory is not found — no Astro build required)*
 - `tests/fixtures/docs-slugs.json` *(new — fixture listing known docs slugs; generated by `npm run fixture:docs-slugs`; see Test Data Strategy in Design)*
 - `tests/use-cases/select-available-features.test.ts` *(new)*
 - `tests/lib/documented-features.test.ts` *(new — schema and inventory shape; imports `tests/fixtures/docs-slugs.json` to assert all configured slugs are known)*
@@ -397,7 +399,7 @@ If a card's dedicated docs slug is not present in the collection, the selector e
 - Selector links to `primaryDocsHref` when the dedicated docs slug is present, falls back only to `/docs/quickstart` when both `fallbackDocsHref` and `fallbackContentSlug` are configured and the `quickstart` slug is present, and omits features with no resolvable docs route.
 - Inventory seeds entries for all six documented features: `init`, `new`, `lint`, `copilot-setup`, `mcp-server`, and `agent-shell`.
 - Tests follow the AAA pattern, use Chance.js for fixtures, and never mock fetch directly (no HTTP in this module).
-- Add `"fixture:docs-slugs"` script to `package.json` that reads `src/content/docs/` via `fs.readdirSync`, strips `.md` extensions from each filename, and writes the resulting string array as JSON to `tests/fixtures/docs-slugs.json`; commit the generated fixture file to source control.
+- Add `"fixture:docs-slugs"` script to `package.json` that reads `src/content/docs/` via `fs.readdirSync` anchored to the project root (e.g. `path.join(__dirname, '../src/content/docs')`), strips `.md` extensions from each filename, writes the resulting string array as JSON to `tests/fixtures/docs-slugs.json`, and exits with code 1 if the resolved directory does not exist; commit the generated fixture file to source control.
 
 **Verification**:
 - [ ] `npm run fixture:docs-slugs` runs without error and writes `tests/fixtures/docs-slugs.json` (no Astro build required)
@@ -556,6 +558,7 @@ If a card's dedicated docs slug is not present in the collection, the selector e
 **Requirements**:
 - Implements Story 5 and Story 6.
 - Unit test fails with a message naming the missing slug if an internal card or CTA `href` (starting with `/`) points to an unmapped internal route.
+- The unit test shall render `HomePage` with `resolvedFeatures` produced by calling `selectAvailableFeatures(inventory, docsSlugs)` where `docsSlugs` is imported from `tests/fixtures/docs-slugs.json`, so that all inventory-backed anchors present in the fixture are exercised.
 - Unit test also asserts that each card title rendered by `CoreModulesSection` appears verbatim in at least one document in the content collection (vocabulary check for Story 6 AC3).
 - Unit test also asserts that no card description rendered by `CoreModulesSection` contains any banned coined term from Story 6 AC1 ("cognitive workloads", "operational perimeter", "hallucination loops", "feedback loop", "logic feedback loop") (vocabulary check for Story 6 AC4).
 - Apply the standard link-normalization algorithm (defined in Story 5) to all internal homepage link targets before validation in both the unit test and the e2e spec.
