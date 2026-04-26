@@ -153,7 +153,10 @@ A new typed feature entity describes the homepage feature inventory and its docs
 // src/entities/feature.ts
 import { z } from 'zod';
 
-export const HomepageFeatureInventoryItemSchema = z.object({
+// Base object schema — used as the source for both the inventory and resolved schemas.
+// Kept as a plain z.object() so that .omit()/.extend() work correctly (ZodEffects
+// returned by .refine() does not support those combinators).
+const HomepageFeatureInventoryItemBaseSchema = z.object({
     id: z.string(),                    // 'init' | 'lint' | 'mcp-server' | 'agent-shell' | ...
     title: z.string(),                 // Human label shown on the card
     summary: z.string(),               // 1–2 sentence paraphrase of the docs page
@@ -161,19 +164,25 @@ export const HomepageFeatureInventoryItemSchema = z.object({
     primaryContentSlug: z.string(),    // slug that must exist for primaryDocsHref
     fallbackDocsHref: z.literal('/docs/quickstart').optional(),
     fallbackContentSlug: z.literal('quickstart').optional(),
-}).refine(
-    (feature) =>
-        !(
-            (feature.fallbackDocsHref === undefined &&
-                feature.fallbackContentSlug !== undefined) ||
-            (feature.fallbackDocsHref !== undefined &&
-                feature.fallbackContentSlug === undefined)
-        ),
-    { message: 'Fallback href and content slug must be configured together' },
-);
+});
 
+// Inventory schema — adds cross-field validation that fallback href and slug
+// must both be present or both be absent.
+export const HomepageFeatureInventoryItemSchema =
+    HomepageFeatureInventoryItemBaseSchema.refine(
+        (feature) =>
+            !(
+                (feature.fallbackDocsHref === undefined &&
+                    feature.fallbackContentSlug !== undefined) ||
+                (feature.fallbackDocsHref !== undefined &&
+                    feature.fallbackContentSlug === undefined)
+            ),
+        { message: 'Fallback href and content slug must be configured together' },
+    );
+
+// Resolved schema — derived from the base (not the refined) schema so .omit() works.
 export const ResolvedHomepageFeatureSchema =
-    HomepageFeatureInventoryItemSchema.omit({
+    HomepageFeatureInventoryItemBaseSchema.omit({
         primaryDocsHref: true,
         primaryContentSlug: true,
         fallbackDocsHref: true,
@@ -190,9 +199,12 @@ Selector:
 
 ```ts
 // src/use-cases/select-available-features.ts
+// availableSlugs is a plain array so it can be passed as a JSON-serializable
+// Astro island prop. The implementation may convert it to a Set internally for
+// O(1) lookups, but the public API must not require a Set from callers.
 export function selectAvailableFeatures(
     inventory: readonly HomepageFeatureInventoryItem[],
-    availableSlugs: ReadonlySet<string>,
+    availableSlugs: readonly string[],
 ): ResolvedHomepageFeature[];
 ```
 
@@ -207,18 +219,33 @@ Used by `CoreModulesSection` and (if retained) `QuickstartFlowSection` so a feat
 ### Data Flow Diagram
 
 ```
-                         ┌───────────────────────────────────┐
-                         │ src/content/local-docs/*.md       │
-                         │ src/content/docs/*.md (fetched)   │
-                         └────────────────┬──────────────────┘
-                                          │ getCollection('docs') at build time
-                                          ▼
+       ┌──────────────────────────────┐    ┌──────────────────────────────┐
+       │ src/content/local-docs/*.md  │    │ upstream docs fetched from   │
+       │ (quickstart.md, readme.md — │    │ zpratt/lousy-agents          │
+       │  project overview)           │    │ (docs/*.md + packages/       │
+       │                              │    │  agent-shell/README.md)      │
+       └──────────────┬───────────────┘    └──────────────┬───────────────┘
+                      │                                   │
+                      └──────────────┬────────────────────┘
+                                     ▼
+                   ┌───────────────────────────────────────┐
+                   │ scripts/fetch-docs.sh                 │
+                   │ copies/merges local + fetched docs    │
+                   │ → writes src/content/docs/*.md        │
+                   └────────────────┬──────────────────────┘
+                                    │
+                                    ▼
+                   ┌───────────────────────────────────────┐
+                   │ src/content/docs/*.md                 │
+                   └────────────────┬──────────────────────┘
+                                    │ getCollection('docs') at build time
+                                    ▼
        ┌──────────────────────────────────────────────────────────┐
        │ index.astro (build-time Astro page)                      │
        │ - reads docs collection                                  │
-       │ - passes availableSlugs as prop into <HomePage/>         │
+       │ - passes availableSlugs (string[]) as prop into <HomePage/>│
        └────────────────┬─────────────────────────────────────────┘
-                        │ availableSlugs
+                        │ availableSlugs: string[]
                         ▼
        ┌──────────────────────────────────────────────────────────┐
        │ HomePage.tsx (client:only react island)                  │
