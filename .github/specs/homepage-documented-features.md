@@ -78,7 +78,9 @@ so that I can **drill into the docs to verify each claim before adopting the too
 - [ ] When a visitor navigates to a feature card's docs link, the built site shall return a 200 response.
 - [ ] If no resolvable `docsHref` is produced by the `selectAvailableFeatures` selector for a feature, then the `CoreModulesSection` shall omit that feature's card entirely.
 - [ ] The `CoreModulesSection` shall not render fabricated version labels (e.g. `v2.0.1 // system.bin`).
-- [ ] The `CoreModulesSection` shall resolve each card's accent color from a hardcoded `feature.id`-keyed map defined within `CoreModulesSection.tsx`; the `ResolvedHomepageFeature` prop shall carry no color data.
+- [ ] The `CoreModulesSection` shall render each card with a visually distinct, non-empty accent color per feature ID.
+
+> Note (implementation constraint): Accent colors shall be sourced from a hardcoded `feature.id`-keyed map within `CoreModulesSection.tsx`; `ResolvedHomepageFeature` shall carry no color data. This constraint is documented in the Design §Components Affected entry.
 
 ### Story 3: Remove fabricated "Spec-Driven Development" pillars section
 
@@ -139,7 +141,7 @@ so that I do **not encounter dead ends**.
 - [ ] If an internal homepage link's normalized path target — computed using the standard link-normalization algorithm — does not correspond to an entry in the docs content collection or a static page in `src/pages/`, then the rendered homepage shall not include that link.
 - [ ] If no fallback is configured in the inventory for an inventory-backed feature link, and that feature's primary content slug is absent from the docs collection, then the `selectAvailableFeatures` selector shall not emit that feature in its output.
 - [ ] If a fallback is configured in the inventory for an inventory-backed feature link, and that feature's primary content slug is absent from the docs collection, and the configured fallback content slug is present in the docs collection, then the `selectAvailableFeatures` selector shall resolve that feature's `docsHref` to `fallbackDocsHref`.
-- [ ] If a homepage link's `href` does not start with `/`, then the `homepage-link-integrity` unit test shall not validate that link against the internal docs-page matching requirement.
+- [ ] The homepage shall not require an internal docs route to exist for external links (any anchor whose `href` does not start with `/`).
 
 ### Story 6: Homepage copy is grounded in documentation, not jargon
 
@@ -538,13 +540,12 @@ If a card's dedicated docs slug is not present in the collection, the selector e
 - [ ] `tests/components/home/SpecDrivenSection.test.tsx` no longer exists
 - [ ] `npm test tests/components/home/HomePage.test.tsx` passes — asserts `SpecDrivenSection` is not rendered
 - [ ] `npx biome check` passes for all touched files
+- [ ] Test asserts rendered `QuickstartFlowSection` contains no text matching `Protocol.*compliance` or `Protocol compliance enforcement`
 - [ ] Visual verification screenshot attached
 
 **Done when**:
 - [ ] All verification steps pass
-- [ ] No reference to `Define the Spec`, `Mock the World`, `Atomic Deploy`, or `mocking engine` exists in `src/components/home/`
-
----
+- [ ] No reference to `Define the Spec`, `Mock the World`, `Atomic Deploy`, `mocking engine`, or `Protocol compliance` exists in `src/components/home/`
 
 ### Task 5: Remove `DeveloperPatch` per OQ-2 resolution
 
@@ -588,7 +589,9 @@ If a card's dedicated docs slug is not present in the collection, the selector e
 - Implements Story 5 and Story 6.
 - Unit test fails with a message naming the missing slug if an internal card or CTA `href` (starting with `/`) points to an unmapped internal route.
 - The unit test shall render `HomePage` with `resolvedFeatures` produced by calling `selectAvailableFeatures(inventory, docsSlugs)` where `docsSlugs` is imported from `tests/fixtures/docs-slugs.json`, so that all inventory-backed anchors present in the fixture are exercised.
+- Unit test asserts each card title rendered by `CoreModulesSection` matches one of the six expected titles from the inventory: `init`, `new`, `lint`, `copilot-setup`, `MCP Server`, `Agent Shell`. These titles are deterministic (hardcoded in the inventory) and require no docs-content fixture.
 - Unit test also asserts that no card description rendered by `CoreModulesSection` contains any banned coined term from Story 6 AC1 ("cognitive workloads", "operational perimeter", "hallucination loops", "feedback loop", "logic feedback loop") (vocabulary check for Story 2 AC5).
+- External links (href not starting with `/`) are excluded from the slug-existence check in the unit test.
 - In the unit test, apply all steps of the standard link-normalization algorithm (including step 6 slug translation) before checking slug existence in the fixture. In the e2e spec, apply steps 0–5 only (lowercase, strip fragment, strip query string, decode percent-encoding, collapse consecutive slashes, strip trailing slash) before issuing the Playwright request; step 6 (slug translation) is inapplicable in e2e because the test issues a real HTTP request to the full routable path (`/docs/lint`, not `lint`).
 - E2e test runs against the production build (`npm run test:e2e:dist`) so static-only routes are exercised.
 
